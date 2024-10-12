@@ -50,13 +50,12 @@ Key Conventions
 3. Ensure code is well-documented with inline comments and Rustdoc.
 
 Async Ecosystem
+- We use the `loco` framework for the backend with socketioxide for websocket interactions.
 - Use `tokio` for async runtime and task management.
-- Use `tokio-tungstenite` for websocket support.
 - Use `tower` and `tower-http` for middleware and composed handlers.
 - Leverage `axum` for webserver support.
 - Use `serde` for serialization/deserialization.
 - Use `sea-orm` for database interactions. Sqlite for local development, Postgres for production.
-- Utilize `tonic` for gRPC with async support.
 
 Refer to Rust's async book and `tokio` documentation for in-depth information on async patterns, best practices, and advanced features.
   

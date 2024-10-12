@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use loco_rs::{
     app::{AppContext, Hooks, Initializer},
     boot::{create_app, BootResult, StartMode},
-    controller::AppRoutes,
+    controller::{channels::AppChannels, AppRoutes},
     db::{self, truncate_table},
     environment::Environment,
     task::Tasks,
@@ -15,6 +15,7 @@ use migration::Migrator;
 use sea_orm::DatabaseConnection;
 
 use crate::{
+    channels,
     controllers, initializers,
     models::_entities::{notes, users},
     tasks,
@@ -53,6 +54,7 @@ impl Hooks for App {
             .add_route(controllers::notes::routes())
             .add_route(controllers::auth::routes())
             .add_route(controllers::user::routes())
+            .add_app_channels(Self::register_channels(_ctx))
     }
 
     fn connect_workers<'a>(p: &'a mut Processor, ctx: &'a AppContext) {
@@ -61,6 +63,13 @@ impl Hooks for App {
 
     fn register_tasks(tasks: &mut Tasks) {
         tasks.register(tasks::seed::SeedData);
+    }
+
+    fn register_channels(_ctx: &AppContext) -> AppChannels {
+        let channels = AppChannels::default();
+        channels.register.ns("/", channels::application::on_connect);
+        channels
+
     }
 
     async fn truncate(db: &DatabaseConnection) -> Result<()> {
