@@ -1,0 +1,9 @@
+[project]
+name = "client"
+version = "0.1.0"
+description = "Quick and dirty client to test the websocket server."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aiohttp>=3.10.10",
+]
