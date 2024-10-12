@@ -2,7 +2,7 @@
 
 ## Phase 1: Core Infrastructure (Backend + Frontend Basics)
 
-- [x] Set up the Rust (Axum) server with WebSocket support.
+- [x] Set up the Loco project and server with WebSocket support.
 - [ ] Create PostgreSQL tables for players, labs, resources, and models.
 - [ ] Build a SvelteKit frontend with a basic UI that connects via WebSocket to the backend.
 - [ ] Implement the core gameplay loop (resource generation, lab management, model upgrades).
