@@ -3,17 +3,18 @@
     import * as Form from "$lib/components/ui/form";
 	import { signupFormSchema } from "$lib/schema";
 	import { zodClient } from "sveltekit-superforms/adapters";
-	import { superForm, type SuperValidated, type Infer } from "sveltekit-superforms";
+	import { superForm } from "sveltekit-superforms";
     import { Button } from "$lib/components/ui/button";
 
-    /** @type {import('./$types').PageData} */
-	export let data: SuperValidated<Infer<typeof signupFormSchema>>;
+	import type { PageData } from "./$types";
+	export let data: PageData;
 
     let registrationSuccess: boolean = false;
  
-	const form = superForm(data, {
+	const form = superForm(data.form, {
 		validators: zodClient(signupFormSchema),
         validationMethod: 'onsubmit',
+		dataType: 'json',
 		onSubmit: ({ formData, cancel }) => {
 			cancel();
 			submitForm(formData);
@@ -83,6 +84,6 @@
             <Button type="submit">Register</Button>
         </form>
     {:else}
-        <p>Registration successful. You can now <a href="/login">login</a>.</p>
+        <p>Registration successful. You can now <a href="/auth/login">login</a>.</p>
     {/if}
 </main>

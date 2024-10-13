@@ -3,17 +3,24 @@
     import * as Form from "$lib/components/ui/form";
 	import { loginFormSchema } from "$lib/schema";
 	import { zodClient } from "sveltekit-superforms/adapters";
-	import { superForm, type SuperValidated, type Infer } from "sveltekit-superforms";
+	import { superForm } from "sveltekit-superforms";
     import { Button } from "$lib/components/ui/button";
 
-    /** @type {import('./$types').PageData} */
-	export let data: SuperValidated<Infer<typeof loginFormSchema>>;
+	import type { PageData } from "./$types";
+	export let data: PageData;
 
-    let userData: any = null;
+	interface UserData {
+		is_verified: boolean;
+		name: string;
+		pid: string;
+		token: string;
+	}
+    let userData: UserData | null = null;
  
-	const form = superForm(data, {
+	const form = superForm(data.form, {
 		validators: zodClient(loginFormSchema),
         validationMethod: 'onsubmit',
+		dataType: 'json',
 		onSubmit: ({ formData, cancel }) => {
 			cancel();
 			submitForm(formData);
@@ -27,7 +34,7 @@
 			password: formData.get("password"),
 		}
 
-		const registerPromise = fetch('/api/auth/login', {
+		const loginPromise = fetch('/api/auth/login', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -40,11 +47,10 @@
 			return await response.json();
 		});
 
-		toast.promise(registerPromise, {
+		toast.promise(loginPromise, {
 			loading: 'Logging in...',
-			success: (data) => {
-				console.log(data);
-                userData = data;
+			success: (data: UserData) => {
+				userData = data;
 				return "Logged in successfully.";
 			},
 			error: (error: any) => `Login failed: ${error.message}`,
@@ -75,8 +81,7 @@
             <Button type="submit">Log in</Button>
         </form>
     {:else}
-        <p>Logged in as {userData.user.name}</p>
-        <p>Email: {userData.user.email}</p>
+        <p>Logged in as {userData.name}</p>
         <Button on:click={() => (userData = null)}>Log out</Button>
     {/if}
 </main>
