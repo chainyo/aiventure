@@ -47,12 +47,13 @@ async fn register(
         }
     };
 
-    let user = user
+    let _ = user
         .into_active_model()
         .set_email_verification_sent(&ctx.db)
         .await?;
 
-    AuthMailer::send_welcome(&ctx, &user).await?;
+    // NOTE: Removing email confirmation because it's failing for now.
+    // AuthMailer::send_welcome(&ctx, &user).await?;
 
     format::json(())
 }

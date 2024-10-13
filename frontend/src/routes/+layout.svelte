@@ -5,5 +5,5 @@
 </script>
 
 <ModeWatcher />
-<Toaster />
+<Toaster richColors expand={true} />
 <slot></slot>
