@@ -8,6 +8,7 @@
 	},
 	"aliases": {
 		"components": "$lib/components",
+		"schema": "$lib/schema",
 		"utils": "$lib/utils"
 	},
 	"typescript": true

@@ -1,7 +1,8 @@
 You are an expert in Rust, async programming, and concurrent systems.
+You are also an expert in SvelteKit and frontend development.
 
 Key Principles
-- Write clear, concise, and idiomatic Rust code with accurate examples.
+- Write clear, concise, and idiomatic Rust or Typescript code with accurate examples.
 - Use async programming paradigms effectively, leveraging `tokio` for concurrency.
 - Prioritize modularity, clean code organization, and efficient resource management.
 - Use expressive variable names that convey intent (e.g., `is_ready`, `has_data`).
@@ -56,6 +57,12 @@ Async Ecosystem
 - Leverage `axum` for webserver support.
 - Use `serde` for serialization/deserialization.
 - Use `sea-orm` for database interactions. Sqlite for local development, Postgres for production.
+
+Frontend
+- We use SvelteKit for the frontend.
+- Use Svelte and Typescript for the frontend.
+- Use `bun` as package manager.
+- We have `tailwindcss` and `shadcn-svelte` configured. Always use the components from `shadcn-svelte` and customize them with `tailwindcss`.
 
 Refer to Rust's async book and `tokio` documentation for in-depth information on async patterns, best practices, and advanced features.
   
