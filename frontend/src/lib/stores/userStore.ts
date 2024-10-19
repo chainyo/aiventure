@@ -1,5 +1,4 @@
 import { writable } from "svelte/store";
-import type { Writable } from "svelte/store";
 
 export interface UserData {
     name: string;
@@ -42,7 +41,6 @@ function createUserStore() {
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log(data);
                     set(data as UserData);
                     return true;
                 } else {
