@@ -53,8 +53,13 @@
 	}
 </script>
 
+<svelte:head>
+  <title>AI Venture | Register</title>
+  <meta name="description" content="Register to AI Venture" />
+</svelte:head>
+
 <main class="container mx-auto p-4 max-w-md">
-    <h1 class="text-3xl font-bold mb-6">Welcome to Aiventure</h1>
+    <h1 class="text-3xl font-bold mb-6">Register to AI Venture</h1>
     {#if !registrationSuccess}
         <form method="POST" use:enhance>
             <Form.Field {form} name="name">
@@ -84,6 +89,6 @@
             <Button type="submit">Register</Button>
         </form>
     {:else}
-        <p>Registration successful. You can now <a href="/auth/login">login</a>.</p>
+        <p>Registration successful. You can now <a href="/login">login</a>.</p>
     {/if}
 </main>

@@ -3,12 +3,12 @@ use std::path::Path;
 use async_trait::async_trait;
 use loco_rs::{
     app::{AppContext, Hooks, Initializer},
+    bgworker::{BackgroundWorker, Queue},
     boot::{create_app, BootResult, StartMode},
     controller::{channels::AppChannels, AppRoutes},
     db::{self, truncate_table},
     environment::Environment,
     task::Tasks,
-    worker::{AppWorker, Processor},
     Result,
 };
 use migration::Migrator;
@@ -17,7 +17,7 @@ use sea_orm::DatabaseConnection;
 use crate::{
     channels,
     controllers, initializers,
-    models::_entities::{notes, users},
+    models::_entities::{users},
     tasks,
     workers::downloader::DownloadWorker,
 };
@@ -51,14 +51,14 @@ impl Hooks for App {
 
     fn routes(_ctx: &AppContext) -> AppRoutes {
         AppRoutes::with_default_routes()
-            .add_route(controllers::notes::routes())
             .add_route(controllers::auth::routes())
             .add_route(controllers::user::routes())
             .add_app_channels(Self::register_channels(_ctx))
     }
 
-    fn connect_workers<'a>(p: &'a mut Processor, ctx: &'a AppContext) {
-        p.register(DownloadWorker::build(ctx));
+    async fn connect_workers(ctx: &AppContext, queue: &Queue) -> Result<()> {
+        queue.register(DownloadWorker::build(ctx)).await?;
+        Ok(())
     }
 
     fn register_tasks(tasks: &mut Tasks) {
@@ -74,13 +74,11 @@ impl Hooks for App {
 
     async fn truncate(db: &DatabaseConnection) -> Result<()> {
         truncate_table(db, users::Entity).await?;
-        truncate_table(db, notes::Entity).await?;
         Ok(())
     }
 
     async fn seed(db: &DatabaseConnection, base: &Path) -> Result<()> {
         db::seed::<users::ActiveModel>(db, &base.join("users.yaml").display().to_string()).await?;
-        db::seed::<notes::ActiveModel>(db, &base.join("notes.yaml").display().to_string()).await?;
         Ok(())
     }
 }

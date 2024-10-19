@@ -2,6 +2,7 @@
 #![allow(non_upper_case_globals)]
 
 use loco_rs::prelude::*;
+use loco_rs::mailer::{Mailer, MailerOpts};
 use serde_json::json;
 
 use crate::models::users;
@@ -13,7 +14,14 @@ static forgot: Dir<'_> = include_dir!("src/mailers/auth/forgot");
 
 #[allow(clippy::module_name_repetitions)]
 pub struct AuthMailer {}
-impl Mailer for AuthMailer {}
+impl Mailer for AuthMailer {
+    fn opts() -> MailerOpts {
+        MailerOpts {
+            from: "Thomas <thomas@chainyo.dev>".to_string(),
+            ..Default::default()
+        }
+    }
+}
 impl AuthMailer {
     /// Sending welcome email the the given user
     ///

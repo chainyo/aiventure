@@ -6,4 +6,11 @@
 
 <ModeWatcher />
 <Toaster richColors expand={true} />
-<slot></slot>
+
+<div class="relative flex min-h-screen flex-col bg-background" id="page">
+	<!-- <SiteHeader /> -->
+	<div class="flex-1">
+		<slot />
+	</div>
+	<!-- <SiteFooter /> -->
+</div>

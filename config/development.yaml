@@ -141,19 +141,19 @@ workers:
 
 # Mailer Configuration.
 # mailer:
-#   # SMTP mailer configuration.
-#   smtp:
-#     # Enable/Disable smtp mailer.
-#     enable: true
-#     # SMTP server host. e.x localhost, smtp.gmail.com
-#     host: {{ get_env(name="MAILER_HOST", default="localhost") }}
-#     # SMTP server port
-#     port: 1025
-#     # Use secure connection (SSL/TLS).
-#     secure: false
-#     # auth:
-#     #   user:
-#     #   password:
+  # SMTP mailer configuration.
+  # smtp:
+  #   # Enable/Disable smtp mailer.
+  #   enable: true
+  #   # SMTP server host. e.x localhost, smtp.gmail.com
+  #   host: {{ get_env(name="MAILER_HOST", default="localhost") }}
+  #   # SMTP server port
+  #   port: 1025
+  #   # Use secure connection (SSL/TLS).
+  #   secure: false
+  #   # auth:
+  #   #   user:
+  #   #   password:
 # Mailer Configuration.
 mailer:
   # SMTP mailer configuration.
@@ -163,11 +163,11 @@ mailer:
     # SMTP server host. e.x localhost, smtp.gmail.com
     host: {{ get_env(name="MAILER_HOST", default="smtp.sendgrid.net") }}
     # SMTP server port
-    port: 465
+    port: 587
     # Use secure connection (SSL/TLS).
     secure: true
     auth:
-      user: {{ get_env(name="MAILER_USER", default="apiuser") }}
+      user: {{ get_env(name="MAILER_USER", default="apikey") }}
       password: {{ get_env(name="MAILER_API_KEY", default="apikey") }}
 
 # Initializers Configuration
@@ -200,8 +200,9 @@ database:
 
 # Queue Configuration
 queue:
+  kind: Redis
   # Redis connection URI
-  uri: {{ get_env(name="REDIS_URL", default="redis://127.0.0.1") }}
+  uri: {{ get_env(name="REDIS_URL", default="redis://127.0.0.1:6379") }}
   # Dangerously flush all data in Redis on startup. dangerous operation, make sure that you using this flag only on dev environments or test mode
   dangerously_flush: false
 
@@ -210,6 +211,6 @@ auth:
   # JWT authentication
   jwt:
     # Secret key for token generation and verification
-    secret: 4lFJde7xjTIy2JcpLe12
+    secret: {{ get_env(name="JWT_SECRET", default="1234567890") }}
     # Token expiration time in seconds
     expiration: 604800 # 7 days

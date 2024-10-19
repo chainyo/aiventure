@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { goto } from "$app/navigation";
+	import { onMount } from "svelte";
+
     import { toast } from "svelte-sonner";
     import * as Form from "$lib/components/ui/form";
 	import { loginFormSchema } from "$lib/schema";
@@ -6,16 +9,29 @@
 	import { superForm } from "sveltekit-superforms";
     import { Button } from "$lib/components/ui/button";
 
+	import { userStore, type UserData } from "$lib/stores/userStore";
+
 	import type { PageData } from "./$types";
 	export let data: PageData;
 
-	interface UserData {
-		is_verified: boolean;
-		name: string;
-		pid: string;
-		token: string;
+	let isInitialized = false;
+
+	onMount(() => {
+		if (userStore.initializeFromLocalStorage()) {
+			redirectToPlay();
+		}
+		isInitialized = true;
+	});
+
+	function redirectToPlay() {
+		setTimeout(() => {
+			goto('/play');
+		}, 3000);
 	}
-    let userData: UserData | null = null;
+
+	$: if (isInitialized && $userStore) {
+		redirectToPlay();
+	}
  
 	const form = superForm(data.form, {
 		validators: zodClient(loginFormSchema),
@@ -50,7 +66,10 @@
 		toast.promise(loginPromise, {
 			loading: 'Logging in...',
 			success: (data: UserData) => {
-				userData = data;
+				userStore.setUser(data);
+				setTimeout(() => {
+					goto('/play');
+				}, 3000);
 				return "Logged in successfully.";
 			},
 			error: (error: any) => `Login failed: ${error.message}`,
@@ -58,9 +77,14 @@
 	}
 </script>
 
+<svelte:head>
+  <title>AI Venture | Login</title>
+  <meta name="description" content="Login to AI Venture" />
+</svelte:head>
+
 <main class="container mx-auto p-4 max-w-md">
-    <h1 class="text-3xl font-bold mb-6">Welcome to Aiventure</h1>
-    {#if !userData}
+    <h1 class="text-3xl font-bold mb-6">Login to AI Venture</h1>
+    {#if isInitialized && !$userStore}
         <form method="POST" use:enhance>
             <Form.Field {form} name="email">
                 <Form.Control let:attrs>
@@ -80,8 +104,10 @@
             </Form.Field>
             <Button type="submit">Log in</Button>
         </form>
+    {:else if $userStore}
+        <p class="text-2xl">Welcome back <span class="font-bold text-blue-500">{$userStore.name}</span></p>
+		<p class="text-gray-500">Redirecting you to the game...</p>
     {:else}
-        <p>Logged in as {userData.name}</p>
-        <Button on:click={() => (userData = null)}>Log out</Button>
-    {/if}
+		<p>Loading...</p>
+	{/if}
 </main>
