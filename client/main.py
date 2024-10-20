@@ -1,28 +1,24 @@
 import asyncio
-import aiohttp
+import socketio
 
-async def test_websocket():
-    async with aiohttp.ClientSession() as session:
-        async with session.ws_connect('http://localhost:3000/ws') as ws:
-            print("Connected to WebSocket server")
+# @sio.event
+# async def connect():
+#     print("Connected to Socket.IO server")
+#     await sio.emit("get-player-data")
 
-            # Send a message to the server
-            await ws.send_str("Hello from Python client!")
+# @sio.event
+# async def disconnect():
+#     print("Disconnected from Socket.IO server")
 
-            # Receive messages for a short time
-            try:
-                async for msg in ws:
-                    if msg.type == aiohttp.WSMsgType.TEXT:
-                        print(f"Received: {msg.data}")
-                    elif msg.type == aiohttp.WSMsgType.CLOSED:
-                        break
-                    elif msg.type == aiohttp.WSMsgType.ERROR:
-                        break
-            except asyncio.TimeoutError:
-                print("Timeout: No more messages received.")
-            finally:
-                await ws.close()
-                print("WebSocket connection closed")
+# @sio.event
+# async def player_data(data):
+#     print(f"Received player data: {data}")
+
+async def main():
+    async with socketio.AsyncSimpleClient() as sio:
+        await sio.connect('http://localhost:5150/', transports=['websocket'])
+        await sio.wait()
+        await sio.disconnect()
 
 if __name__ == "__main__":
-    asyncio.run(test_websocket())
+    asyncio.run(main())

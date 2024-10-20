@@ -126,8 +126,8 @@ server:
       precompressed: false
       folder:
         uri: "/"
-        path: "frontend/build"
-      fallback: "frontend/build/index.html"
+        path: "frontend/dist"
+      fallback: "frontend/dist/index.html"
     # (client-block-end)
     #
 

@@ -4,7 +4,7 @@
 
 - [x] Set up the Loco project and server with WebSocket support.
 - [ ] Create PostgreSQL tables for players, labs, resources, and models.
-- [ ] Build a SvelteKit frontend with a basic UI that connects via WebSocket to the backend.
+- [ ] Build a React frontend with a basic UI that connects via WebSocket to the backend.
 - [ ] Implement the core gameplay loop (resource generation, lab management, model upgrades).
 
 ## Phase 2: Game Logic and Leaderboard
