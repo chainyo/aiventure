@@ -1,19 +1,24 @@
 <script lang="ts">
+  import { onMount } from "svelte";
 	import { goto } from "$app/navigation";
 	import { userStore } from "$lib/stores/userStore";
 	import { Button } from "$lib/components/ui/button";
+  import { initializeSocket } from "$lib/websocket";
 
   function handleLogout() {
     userStore.clearUser();
     goto('/');
   }
-</script>
 
+  onMount(() => {
+    console.log("Connecting to socket");
+    initializeSocket();
+  });
+</script>
 <svelte:head>
   <title>AI Venture | Play</title>
   <meta name="description" content="Play AI Venture" />
 </svelte:head>
-
 <main class="container mx-auto p-4 max-w-md">
     <h1 class="text-3xl font-bold mb-6">Welcome to AI Venture</h1>
     {#if $userStore}
