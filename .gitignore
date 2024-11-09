@@ -170,3 +170,9 @@ data/*
 
 # UV
 uv.lock
+
+# Environment variables
+.env
+
+# Database
+*.db
