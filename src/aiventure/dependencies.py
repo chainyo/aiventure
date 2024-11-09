@@ -11,8 +11,23 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlmodel import SQLModel
 
 from aiventure.config import settings
-from aiventure.db import BaseCRUD, QualityCRUD, RoleCategoryCRUD, RoleCRUD
-from aiventure.models import QUALITY_MAPPING, ROLE_CATEGORY_MAPPING, ROLE_MAPPING
+from aiventure.db import (
+    AIModelTypeCRUD,
+    BaseCRUD,
+    LocationCRUD,
+    ModifierTypeCRUD,
+    QualityCRUD,
+    RoleCategoryCRUD,
+    RoleCRUD,
+)
+from aiventure.models import (
+    AI_MODEL_TYPE_MAPPING,
+    LOCATION_MAPPING,
+    MODIFIER_TYPE_MAPPING,
+    QUALITY_MAPPING,
+    ROLE_CATEGORY_MAPPING,
+    ROLE_MAPPING,
+)
 
 
 @asynccontextmanager
@@ -40,9 +55,21 @@ async def get_async_session(request: Request) -> AsyncGenerator[AsyncSession, No
 
 async def init_database(session: AsyncSession) -> None:
     """Initialize the database."""
+    ai_model_type_crud = AIModelTypeCRUD(session)
+    for ai_model_type in AI_MODEL_TYPE_MAPPING.values():
+        await _try_create_or_update(ai_model_type_crud, ai_model_type)
+
+    location_crud = LocationCRUD(session)
+    for location in LOCATION_MAPPING.values():
+        await _try_create_or_update(location_crud, location)
+
     quality_crud = QualityCRUD(session)
     for quality in QUALITY_MAPPING.values():
         await _try_create_or_update(quality_crud, quality)
+
+    modifier_type_crud = ModifierTypeCRUD(session)
+    for modifier_type in MODIFIER_TYPE_MAPPING.values():
+        await _try_create_or_update(modifier_type_crud, modifier_type)
 
     role_category_crud = RoleCategoryCRUD(session)
     for role_category in ROLE_CATEGORY_MAPPING.values():
