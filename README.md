@@ -1,6 +1,9 @@
 <h1 align="center">aiventure</h1>
 
 <div align="center">
+	<a href="https://github.com/chainyo/aiventure" target="_blank">
+		<img src="https://img.shields.io/badge/version-0.0.1-orange.svg" />
+	</a>
 	<img src="https://img.shields.io/badge/Python-3.12-blue?logo=python" />
 	<a href="https://github.com/chainyo/aiventure/actions?workflow=docs" target="_blank">
 		<img src="https://github.com/chainyo/aiventure/workflows/docs/badge.svg" />

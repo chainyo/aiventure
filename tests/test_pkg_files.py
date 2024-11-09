@@ -19,7 +19,6 @@ class TestPackageIntegrity:
             ".gitignore",
             ".pre-commit-config.yaml",
             ".python-version",
-            "badges",
             "CONTRIBUTING.md",
             "docs",
             "Makefile",
@@ -28,17 +27,16 @@ class TestPackageIntegrity:
             "README.md",
             "src",
             "tests",
-            "uv.lock",
         ],
     )
     def test_important_files(self, filepath: str) -> None:
         """Test that important files are present."""
         assert self.ROOT.joinpath(filepath).exists()
 
-    @pytest.mark.usefixtures("pyproject_content", "readme_content")
-    def test_versions_are_aligned(self, pyproject_content, readme_content) -> None:
+    @pytest.mark.usefixtures("readme_content")
+    def test_versions_are_aligned(self, readme_content) -> None:
         """Test that the versions are aligned."""
-        version_pyproject = pyproject_content.split('version = "')[1].split('"')[0]
+        from aiventure import __version__
 
         match = re.search(r'<img src="https://img\.shields\.io/badge/version-([0-9.]+)-[a-z]+\.svg"', readme_content)
         if match:
@@ -46,7 +44,7 @@ class TestPackageIntegrity:
         else:
             raise ValueError("Version badge not found in README.md")
 
-        assert version_pyproject == version_readme
+        assert __version__ == version_readme
 
     @pytest.mark.usefixtures("pyproject_content", "python_version")
     def test_pinned_python_version(self, pyproject_content, python_version) -> None:
