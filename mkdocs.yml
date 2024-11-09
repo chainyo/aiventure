@@ -1,0 +1,63 @@
+site_name: aiventure
+site_url: https://github.com/chainyo/aiventure
+site_author: Thomas Chaigneau
+site_description: A strategy game where you build and lead AI labs to dominate the tech industry through smart investments and innovation.
+
+repo_name: chainyo/aiventure
+repo_url: https://github.com/chainyo/aiventure
+
+copyright: Copyright (c) 2024-present Thomas Chaigneau <thomas@chainyo.dev>
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+  features:
+    - content.code.copy
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+plugins:
+  - search:
+  - git-revision-date-localized:
+      type: timeago
+      enable_creation_date: true
+  - mkdocstrings:
+      default_handler: python
+  - include-markdown:
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/chainyo/aiventure
+
+nav:
+  - Getting Started:
+    - Introduction: index.md
+    - Concepts & Fundamentals: concepts.md
+    - Quickstart: quickstart.md
+    - Installation: installation.md
+    - Contributing: contributing.md
+    - Changelog: changelog.md
+    - About: about.md
+  - Usage:
+    - TODO: usage/index.md
+  - API Reference:
+    - Python: api/root.md

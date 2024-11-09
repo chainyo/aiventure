@@ -1,0 +1,24 @@
+name: Publish
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish-on-pypi:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo and submodule
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Build package
+        run: uv build
+
+      - name: Publish package
+        env:
+          UV_PUBLISH_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+          UV_PUBLISH_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        run: uv publish
