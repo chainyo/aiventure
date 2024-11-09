@@ -13,11 +13,7 @@ class QualityBase(SQLModel):
     name: str
     hex_color: str
 
-    model_config = SQLModelConfig(
-        json_schema_extra={
-            "example": {"id": 1, "name": "Poor", "hex_color": "#9d9d9d"}
-        }
-    )
+    model_config = SQLModelConfig(json_schema_extra={"example": {"id": 1, "name": "Poor", "hex_color": "#9d9d9d"}})
 
 
 class Quality(QualityBase, table=True):

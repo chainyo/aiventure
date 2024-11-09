@@ -1,18 +1,14 @@
 """Database operations for the quality table."""
 
-from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlmodel import col, select
 
+from aiventure.db.base import BaseCRUD
 from aiventure.db.utils import handle_crud_operation
 from aiventure.models import Quality, QualityBase
 
 
-class QualityCRUD:
+class QualityCRUD(BaseCRUD):
     """CRUD operations for the quality table."""
-
-    def __init__(self, session: AsyncSession) -> None:
-        """Initialize the quality CRUD class."""
-        self.session = session
 
     @handle_crud_operation
     async def create(self, quality: QualityBase) -> Quality:
@@ -28,9 +24,7 @@ class QualityCRUD:
     @handle_crud_operation
     async def get_by_id(self, quality_id: int) -> Quality | None:
         """Get a quality by id."""
-        quality = await self.session.execute(
-            select(Quality).where(col(Quality.id) == quality_id)
-        )
+        quality = await self.session.execute(select(Quality).where(col(Quality.id) == quality_id))
         return quality.scalar_one_or_none()
 
     @handle_crud_operation

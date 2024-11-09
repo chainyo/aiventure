@@ -13,11 +13,7 @@ class RoleCategoryBase(SQLModel):
     name: str
     hex_color: str
 
-    model_config = SQLModelConfig(
-        json_schema_extra={
-            "example": {"id": 1, "name": "Research", "hex_color": "#90dbf4"}
-        }
-    )
+    model_config = SQLModelConfig(json_schema_extra={"example": {"id": 1, "name": "Research", "hex_color": "#90dbf4"}})
 
 
 class RoleCategory(RoleCategoryBase, table=True):

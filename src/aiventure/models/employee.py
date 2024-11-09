@@ -28,6 +28,7 @@ class EmployeeBase(UUIDModel):
         }
     )
 
+
 class Employee(EmployeeBase, table=True):
     """Table for employees."""
 

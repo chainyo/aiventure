@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlmodel import SQLModel
 
 from aiventure.config import settings
-from aiventure.db import QualityCRUD, RoleCategoryCRUD, RoleCRUD
+from aiventure.db import BaseCRUD, QualityCRUD, RoleCategoryCRUD, RoleCRUD
 from aiventure.models import QUALITY_MAPPING, ROLE_CATEGORY_MAPPING, ROLE_MAPPING
 
 
@@ -53,7 +53,7 @@ async def init_database(session: AsyncSession) -> None:
         await _try_create_or_update(role_crud, role)
 
 
-async def _try_create_or_update(crud: BaseModel, model: BaseModel) -> None:
+async def _try_create_or_update(crud: BaseCRUD, model: BaseModel) -> None:
     """Try to create or update a model."""
     try:
         await crud.create(model)

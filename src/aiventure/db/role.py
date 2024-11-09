@@ -1,18 +1,14 @@
 """Database operations for the roles and role_categories table."""
 
-from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlmodel import col, select
 
+from aiventure.db.base import BaseCRUD
 from aiventure.db.utils import handle_crud_operation
 from aiventure.models import Role, RoleBase, RoleCategory, RoleCategoryBase
 
 
-class RoleCategoryCRUD:
+class RoleCategoryCRUD(BaseCRUD):
     """CRUD operations for the role_categories table."""
-
-    def __init__(self, session: AsyncSession) -> None:
-        """Initialize the role category CRUD class."""
-        self.session = session
 
     @handle_crud_operation
     async def create(self, role_category: RoleCategoryBase) -> RoleCategory:
@@ -28,9 +24,7 @@ class RoleCategoryCRUD:
     @handle_crud_operation
     async def get_by_id(self, role_category_id: int) -> RoleCategory | None:
         """Get a role category by id."""
-        role_category = await self.session.execute(
-            select(RoleCategory).where(col(RoleCategory.id) == role_category_id)
-        )
+        role_category = await self.session.execute(select(RoleCategory).where(col(RoleCategory.id) == role_category_id))
         return role_category.scalar_one_or_none()
 
     @handle_crud_operation
@@ -51,12 +45,8 @@ class RoleCategoryCRUD:
         return _role_category
 
 
-class RoleCRUD:
+class RoleCRUD(BaseCRUD):
     """CRUD operations for the roles table."""
-
-    def __init__(self, session: AsyncSession) -> None:
-        """Initialize the role CRUD class."""
-        self.session = session
 
     @handle_crud_operation
     async def create(self, role: RoleBase) -> Role:
