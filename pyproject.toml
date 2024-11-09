@@ -32,7 +32,7 @@ dependencies = [
 ]
 
 [project.scripts]
-aiventure = "aiventure.__main__:main"
+aiventure = "aiventure.__main__:app"
 
 [project.urls]
 Source = "https://github.com/chainyo/aiventure"
