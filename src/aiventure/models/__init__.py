@@ -17,7 +17,7 @@ from .core import (
 )
 from .employee import Employee, EmployeeBase
 from .lab import Lab, LabBase
-from .links import EmployeeModifierLink
+from .links import EmployeeModifierLink, PlayerLabInvestmentLink
 from .location import LOCATION_MAPPING, Location, LocationBase, LocationEnum
 from .modifier import (
     MODIFIER_MAPPING,
@@ -29,6 +29,7 @@ from .modifier import (
     ModifierTypeBase,
     ModifierTypeEnum,
 )
+from .player import Player, PlayerBase
 from .quality import QUALITY_MAPPING, Quality, QualityBase, QualityEnum
 from .role import (
     ROLE_CATEGORY_MAPPING,
@@ -73,6 +74,7 @@ __all__ = [
     "LabBase",
     # Links
     "EmployeeModifierLink",
+    "PlayerLabInvestmentLink",
     # Location
     "LOCATION_MAPPING",
     "Location",
@@ -87,6 +89,9 @@ __all__ = [
     "ModifierType",
     "ModifierTypeBase",
     "ModifierTypeEnum",
+    # Player
+    "Player",
+    "PlayerBase",
     # Quality
     "QUALITY_MAPPING",
     "Quality",
