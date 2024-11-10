@@ -1,7 +1,7 @@
 """Dependencies for the API."""
 
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import AsyncGenerator, cast
 
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
@@ -19,7 +19,9 @@ from aiventure.db import (
     QualityCRUD,
     RoleCategoryCRUD,
     RoleCRUD,
+    UsersCRUD,
 )
+from aiventure.gcmanager import GameConnectionManager
 from aiventure.models import (
     AI_MODEL_TYPE_MAPPING,
     LOCATION_MAPPING,
@@ -27,6 +29,7 @@ from aiventure.models import (
     QUALITY_MAPPING,
     ROLE_CATEGORY_MAPPING,
     ROLE_MAPPING,
+    UserCreate,
 )
 
 
@@ -36,8 +39,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     async_engine = create_async_engine(settings.db_connection_str, echo=True, future=True)
 
     app.state.async_engine = async_engine
-    _session = async_sessionmaker(bind=async_engine, expire_on_commit=False)
-    app.state.async_session = _session
+    app.state.async_session = async_sessionmaker(bind=async_engine, expire_on_commit=False)
 
     async with async_engine.begin() as connection:
         await connection.run_sync(SQLModel.metadata.create_all)
@@ -78,6 +80,9 @@ async def init_database(session: AsyncSession) -> None:
     role_crud = RoleCRUD(session)
     for role in ROLE_MAPPING.values():
         await _try_create_or_update(role_crud, role)
+
+    users_crud = UsersCRUD(session)
+    await _try_create_or_update(users_crud, UserCreate(email="test@test.com", password="test"))
 
 
 async def _try_create_or_update(crud: BaseCRUD, model: BaseModel) -> None:

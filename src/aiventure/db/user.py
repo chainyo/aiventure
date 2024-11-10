@@ -8,7 +8,7 @@ from sqlmodel import col, delete, select
 
 from aiventure.db.base import BaseCRUD
 from aiventure.db.utils import handle_crud_operation
-from aiventure.models import User, UserCreate
+from aiventure.models import User, UserCreate, UserPatch
 from aiventure.utils import PasswordManager
 
 
@@ -90,6 +90,17 @@ class UsersCRUD(BaseCRUD):
         return user
 
     @handle_crud_operation
-    async def update(self) -> None:
+    async def update(self, data: UserPatch) -> None:
         """Update a user."""
-        pass
+        _user = await self.get_by_email(data.email)
+
+        if _user is None:
+            return None
+
+        _user.email = data.email
+
+        self.session.add(_user)
+        await self.session.commit()
+        await self.session.refresh(_user)
+
+        return _user
