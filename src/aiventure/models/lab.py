@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING
 
-from sqlmodel import Relationship
+from sqlmodel import Field, Relationship
 from sqlmodel._compat import SQLModelConfig
 
 from aiventure.models.core import UUIDModel
@@ -24,7 +24,7 @@ class LabBase(UUIDModel):
     valuation: float
     income: float
     tech_tree_id: str
-    player_id: str
+    player_id: str = Field(foreign_key="players.id")
 
     model_config = SQLModelConfig(
         json_schema_extra={
