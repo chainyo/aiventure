@@ -1,11 +1,17 @@
 """Employees models."""
 
-from uuid import UUID
+from typing import TYPE_CHECKING
 
-from sqlmodel import Field
+from sqlmodel import Field, Relationship
 from sqlmodel._compat import SQLModelConfig
 
 from aiventure.models.core import UUIDModel
+from aiventure.models.lab import Lab
+from aiventure.models.links import EmployeeModifierLink
+
+
+if TYPE_CHECKING:
+    from aiventure.models.modifier import Modifier
 
 
 class EmployeeBase(UUIDModel):
@@ -16,10 +22,7 @@ class EmployeeBase(UUIDModel):
     image_url: str
     role_id: int = Field(foreign_key="roles.id")
     quality_id: int = Field(foreign_key="qualities.id")
-    modifier_id_1: int | None = Field(foreign_key="modifiers.id", default=None)
-    modifier_id_2: int | None = Field(foreign_key="modifiers.id", default=None)
-    modifier_id_3: int | None = Field(foreign_key="modifiers.id", default=None)
-    lab_id: UUID | None = Field(foreign_key="labs.id", default=None)
+    lab_id: str | None = Field(foreign_key="labs.id", default=None)
 
     model_config = SQLModelConfig(
         json_schema_extra={
@@ -43,3 +46,6 @@ class Employee(EmployeeBase, table=True):
     """Table for employees."""
 
     __tablename__ = "employees"
+
+    modifiers: list["Modifier"] = Relationship(back_populates="employees", link_model=EmployeeModifierLink)
+    lab: Lab | None = Relationship(back_populates="employees")

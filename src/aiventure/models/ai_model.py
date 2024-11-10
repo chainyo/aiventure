@@ -1,12 +1,12 @@
 """AI models models."""
 
 from enum import Enum
-from uuid import UUID
 
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
 from sqlmodel._compat import SQLModelConfig
 
 from aiventure.models.core import UUIDModel
+from aiventure.models.lab import Lab
 
 
 class AIModelTypeBase(SQLModel):
@@ -51,8 +51,8 @@ class AIModelBase(UUIDModel):
 
     name: str
     model_type_id: int = Field(foreign_key="ai_model_types.id")
-    tech_tree_id: UUID
-    lab_id: UUID = Field(foreign_key="labs.id")
+    tech_tree_id: str
+    lab_id: str = Field(foreign_key="labs.id")
 
     model_config = SQLModelConfig(
         json_schema_extra={
@@ -70,3 +70,5 @@ class AIModel(AIModelBase, table=True):
     """AI model model."""
 
     __tablename__ = "ai_models"
+
+    lab: Lab = Relationship(back_populates="models")

@@ -1,9 +1,16 @@
 """Modifiers models."""
 
 from enum import Enum
+from typing import TYPE_CHECKING
 
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
 from sqlmodel._compat import SQLModelConfig
+
+from aiventure.models.links import EmployeeModifierLink
+
+
+if TYPE_CHECKING:
+    from aiventure.models.employee import Employee
 
 
 class ModifierTypeBase(SQLModel):
@@ -65,6 +72,8 @@ class Modifier(ModifierBase, table=True):
     """Modifier model."""
 
     __tablename__ = "modifiers"
+
+    employees: list["Employee"] = Relationship(back_populates="modifiers", link_model=EmployeeModifierLink)
 
 
 MODIFIER_MAPPING: dict[str, ModifierBase] = {

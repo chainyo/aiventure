@@ -1,11 +1,17 @@
 """Labs models."""
 
-from uuid import UUID
+from typing import TYPE_CHECKING
 
+from sqlmodel import Relationship
 from sqlmodel._compat import SQLModelConfig
 
 from aiventure.models.core import UUIDModel
 from aiventure.models.location import LocationEnum
+
+
+if TYPE_CHECKING:
+    from aiventure.models.ai_model import AIModel
+    from aiventure.models.employee import Employee
 
 
 class LabBase(UUIDModel):
@@ -15,7 +21,7 @@ class LabBase(UUIDModel):
     location: LocationEnum
     valuation: float
     income: float
-    tech_tree_id: UUID
+    tech_tree_id: str
 
     model_config = SQLModelConfig(
         json_schema_extra={
@@ -34,3 +40,6 @@ class Lab(LabBase, table=True):
     """Table for labs."""
 
     __tablename__ = "labs"
+
+    employees: list["Employee"] = Relationship(back_populates="lab")
+    models: list["AIModel"] = Relationship(back_populates="lab")

@@ -16,6 +16,7 @@ from .core import (
 )
 from .employee import Employee, EmployeeBase
 from .lab import Lab, LabBase
+from .links import EmployeeModifierLink
 from .location import LOCATION_MAPPING, Location, LocationBase, LocationEnum
 from .modifier import (
     MODIFIER_MAPPING,
@@ -58,6 +59,8 @@ __all__ = [
     # Lab
     "Lab",
     "LabBase",
+    # Links
+    "EmployeeModifierLink",
     # Location
     "LOCATION_MAPPING",
     "Location",
