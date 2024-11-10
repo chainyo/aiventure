@@ -11,6 +11,7 @@ from .ai_model import (
 )
 from .core import (
     Health,
+    StatusMessage,
     UUIDModel,
     Version,
 )
@@ -39,6 +40,16 @@ from .role import (
     RoleCategoryEnum,
     RoleEnum,
 )
+from .user import (
+    Token,
+    TokenData,
+    User,
+    UserAdminPatch,
+    UserBase,
+    UserCreate,
+    UserPatch,
+    UserRead,
+)
 
 
 __all__ = [
@@ -51,6 +62,7 @@ __all__ = [
     "AIModelTypeEnum",
     # Core
     "Health",
+    "StatusMessage",
     "UUIDModel",
     "Version",
     # Employee
@@ -89,4 +101,13 @@ __all__ = [
     "RoleCategoryBase",
     "RoleCategoryEnum",
     "RoleEnum",
+    # User
+    "Token",
+    "TokenData",
+    "User",
+    "UserAdminPatch",
+    "UserBase",
+    "UserCreate",
+    "UserPatch",
+    "UserRead",
 ]

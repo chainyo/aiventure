@@ -6,6 +6,7 @@ from .location import LocationCRUD
 from .modifier import ModifierCRUD, ModifierTypeCRUD
 from .quality import QualityCRUD
 from .role import RoleCategoryCRUD, RoleCRUD
+from .user import UsersCRUD
 
 
 __all__ = [
@@ -18,4 +19,5 @@ __all__ = [
     "QualityCRUD",
     "RoleCategoryCRUD",
     "RoleCRUD",
+    "UsersCRUD",
 ]

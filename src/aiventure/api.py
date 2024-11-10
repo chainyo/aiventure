@@ -4,6 +4,7 @@ from fastapi import FastAPI
 
 from aiventure import __version__
 from aiventure.dependencies import lifespan
+from aiventure.router.authentication import router as auth_router
 from aiventure.router.core import router as core_router
 from aiventure.router.v1.endpoints import api_router
 
@@ -15,5 +16,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-app.include_router(core_router, prefix="")
-app.include_router(api_router, prefix="/api/v1")
+app.include_router(auth_router, prefix="/api/auth", tags=["authentication"])
+app.include_router(core_router, prefix="", tags=["core"])
+app.include_router(api_router, prefix="/api/v1", tags=["v1"])

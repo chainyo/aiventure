@@ -17,6 +17,17 @@ class Health(BaseModel):
     )
 
 
+class StatusMessage(BaseModel):
+    """Status message model for the API."""
+
+    status: bool
+    message: str
+
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"status": True, "message": "Success"}},
+    )
+
+
 class Version(BaseModel):
     """Version model for the API."""
 

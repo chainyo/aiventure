@@ -19,6 +19,22 @@ class Settings(BaseSettings):
         default="sqlite+aiosqlite:///aiventure.db",
         description="The connection string for the database.",
     )
+    # Auth
+    openssl_key: str = Field(
+        alias="OPENSSL_KEY",
+        default="secret",
+        description="The key for the JWT token.",
+    )
+    algorithm: str = Field(
+        alias="ALGORITHM",
+        default="HS256",
+        description="The algorithm for the JWT token.",
+    )
+    access_token_expire_minutes: int = Field(
+        alias="ACCESS_TOKEN_EXPIRE_MINUTES",
+        default=30,
+        description="The expiration time for the JWT token in minutes.",
+    )
 
 
 settings = Settings()

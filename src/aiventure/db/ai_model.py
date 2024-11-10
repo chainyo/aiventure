@@ -1,5 +1,7 @@
 """Database operations for the ai_models and ai_model_types tables."""
 
+from uuid import UUID
+
 from sqlmodel import col, select
 
 from aiventure.db.base import BaseCRUD
@@ -58,9 +60,9 @@ class AIModelCRUD(BaseCRUD):
         return ai_model
 
     @handle_crud_operation
-    async def get_by_id(self, ai_model_id: int) -> AIModel | None:
+    async def get_by_id(self, ai_model_id: str | UUID) -> AIModel | None:
         """Get an AI model by ID."""
-        ai_model = await self.session.execute(select(AIModel).where(col(AIModel.id) == ai_model_id))
+        ai_model = await self.session.execute(select(AIModel).where(col(AIModel.id) == str(ai_model_id)))
         return ai_model.scalar_one_or_none()
 
     @handle_crud_operation
