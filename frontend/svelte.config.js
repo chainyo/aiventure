@@ -16,7 +16,7 @@ const config = {
 			// these options are set automatically — see below
 			pages: '../public',
 			assets: '../public',
-			fallback: undefined,
+			fallback: 'error.html',
 			precompress: false,
 			strict: true
 		}),

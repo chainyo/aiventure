@@ -48,6 +48,7 @@
 		"zod": "^3.23.8"
 	},
 	"dependencies": {
+		"lucide-svelte": "^0.456.0",
 		"mode-watcher": "^0.4.1"
 	}
 }

@@ -6,7 +6,7 @@
 
     import { userStore } from "$lib/stores/userStore";
 
-    $: userStore; 
+    $: userStore;
     let isLoading = true;
     let needsVerification = false;
 

@@ -62,7 +62,7 @@ export class GameWebSocketClient {
 
             await new Promise<void>((resolve, reject) => {
                 if (!this.socket) return reject(new Error('Socket not initialized'));
-                
+
                 const timeout = setTimeout(() => {
                     reject(new Error('WebSocket connection timeout'));
                 }, 5000); // 5 second timeout

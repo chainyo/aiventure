@@ -31,7 +31,7 @@
 	$: if (isInitialized && $userStore) {
 		redirectToPlay();
 	}
- 
+
 	const form = superForm(data.form, {
 		validators: zodClient(loginFormSchema),
         validationMethod: 'onsubmit',
