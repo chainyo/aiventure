@@ -176,3 +176,6 @@ uv.lock
 
 # Database
 *.db
+
+# Frontend
+public/*

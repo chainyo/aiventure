@@ -49,6 +49,7 @@ repos:
         language: system
         types: [json]
         entry: uv run check-json
+        exclude: "frontend/tsconfig.json"
       - id: check-merge-conflict
         name: 💥 Check for merge conflicts
         language: system

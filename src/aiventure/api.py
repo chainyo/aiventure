@@ -1,6 +1,8 @@
 """Entrypoint for the API."""
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from aiventure import __version__
 from aiventure.dependencies import lifespan
@@ -19,3 +21,11 @@ app = FastAPI(
 app.include_router(auth_router, prefix="/api/auth", tags=["authentication"])
 app.include_router(core_router, prefix="", tags=["core"])
 app.include_router(game_router, prefix="/api/game", tags=["game"])
+
+app.mount("/", StaticFiles(directory="public", html=True), name="static")
+
+
+@app.get("/", response_class=FileResponse)
+async def main() -> FileResponse:
+    """Return the main page."""
+    return FileResponse("public/index.html")
