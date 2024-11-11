@@ -16,6 +16,7 @@ from .core import (
     Version,
 )
 from .employee import Employee, EmployeeBase
+from .game import GlobalGameState
 from .lab import Lab, LabBase
 from .links import EmployeeModifierLink, PlayerLabInvestmentLink
 from .location import LOCATION_MAPPING, Location, LocationBase, LocationEnum
@@ -69,6 +70,8 @@ __all__ = [
     # Employee
     "Employee",
     "EmployeeBase",
+    # Game
+    "GlobalGameState",
     # Lab
     "Lab",
     "LabBase",

@@ -2,18 +2,13 @@
 
 from typing import Any
 
-from fastapi import Depends, WebSocket
+from fastapi import WebSocket
 from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from aiventure.config import settings
 from aiventure.db import UsersCRUD
-from aiventure.dependencies import get_async_session_from_websocket
-from aiventure.models import User
-
-
-async def get_users_crud(session: AsyncSession = Depends(get_async_session_from_websocket)) -> UsersCRUD:
-    return UsersCRUD(session=session)
+from aiventure.models import GlobalGameState, User
 
 
 class GameConnectionManager:
@@ -34,6 +29,8 @@ class GameConnectionManager:
 
         self.active_connections[user.id] = websocket
 
+        await self.broadcast(GlobalGameState(n_connected_players=len(self.active_connections)).model_dump())
+
         return user
 
     def disconnect(self, user_id: str) -> None:
@@ -47,7 +44,7 @@ class GameConnectionManager:
             await self.active_connections[user_id].send_json(message)
 
     async def broadcast(self, message: dict[str, Any], exclude: str | None = None) -> None:
-        """Broadcast a message to all users except one."""
+        """Broadcast a message to all users except one if specified."""
         for user_id, connection in self.active_connections.items():
             if user_id != exclude:
                 await connection.send_json(message)
