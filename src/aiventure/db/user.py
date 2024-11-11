@@ -90,7 +90,7 @@ class UsersCRUD(BaseCRUD):
         return user
 
     @handle_crud_operation
-    async def update(self, data: UserPatch) -> None:
+    async def update(self, data: UserPatch) -> User | None:
         """Update a user."""
         _user = await self.get_by_email(data.email)
 

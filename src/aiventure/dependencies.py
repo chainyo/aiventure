@@ -1,9 +1,9 @@
 """Dependencies for the API."""
 
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, cast
+from typing import AsyncGenerator
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, WebSocket
 from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
@@ -21,7 +21,6 @@ from aiventure.db import (
     RoleCRUD,
     UsersCRUD,
 )
-from aiventure.gcmanager import GameConnectionManager
 from aiventure.models import (
     AI_MODEL_TYPE_MAPPING,
     LOCATION_MAPPING,
@@ -52,6 +51,12 @@ async def get_async_session(request: Request) -> AsyncGenerator[AsyncSession, No
     """Get an async session."""
 
     async with request.app.state.async_session() as session:
+        yield session
+
+
+async def get_async_session_from_websocket(websocket: WebSocket) -> AsyncGenerator[AsyncSession, None]:
+    """Get an async session from a websocket."""
+    async with websocket.scope["app"].state.async_session() as session:
         yield session
 
 
