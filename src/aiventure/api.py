@@ -1,6 +1,7 @@
 """Entrypoint for the API."""
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -16,6 +17,11 @@ app = FastAPI(
     version=__version__,
     description="Backend server for AI Venture",
     lifespan=lifespan,
+)
+
+origins = ["http://localhost:8000", "localhost:8000"]
+app.add_middleware(
+    CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"]
 )
 
 app.include_router(auth_router, prefix="/api/auth", tags=["authentication"])
