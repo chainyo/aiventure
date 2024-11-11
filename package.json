@@ -1,0 +1,21 @@
+{
+    "name": "aiventure-frontend",
+    "version": "0.0.1",
+    "scripts": {
+        "install": "bun --cwd frontend install",
+        "dev": "bun --cwd frontend dev",
+        "build": "bun --cwd frontend build",
+        "preview": "bun --cwd frontend preview",
+        "test": "bun --cwd frontend test",
+        "check": "bun --cwd frontend check",
+        "check:watch": "bun --cwd frontend check:watch",
+        "lint": "bun --cwd frontend lint",
+        "format": "bun --cwd frontend format",
+        "test:integration": "bun --cwd frontend test:integration",
+        "test:unit": "bun --cwd frontend test:unit"
+    },
+    "engines": {
+        "bun": ">=1.1",
+        "node": ">=21"
+    }
+}
