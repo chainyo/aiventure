@@ -2,6 +2,7 @@
 
 from enum import Enum
 
+from pydantic import BaseModel, ConfigDict
 from sqlmodel import Field, Relationship, SQLModel
 from sqlmodel._compat import SQLModelConfig
 
@@ -50,7 +51,7 @@ class AIModelBase(UUIDModel):
     """AI model base model."""
 
     name: str
-    model_type_id: int = Field(foreign_key="ai_model_types.id")
+    ai_model_type_id: int = Field(foreign_key="ai_model_types.id")
     tech_tree_id: str
     lab_id: str = Field(foreign_key="labs.id")
 
@@ -58,7 +59,7 @@ class AIModelBase(UUIDModel):
         json_schema_extra={
             "example": {
                 "name": "GPT-2",
-                "model_type_id": 3,
+                "ai_model_type_id": 3,
                 "tech_tree_id": "123e4567-e89b-12d3-a456-426614174000",
                 "lab_id": "123e4567-e89b-12d3-a456-426614174000",
             }
@@ -72,3 +73,25 @@ class AIModel(AIModelBase, table=True):
     __tablename__ = "ai_models"
 
     lab: Lab = Relationship(back_populates="models")
+
+
+class AIModelRead(BaseModel):
+    """AI model read model."""
+
+    id: str
+    name: str
+    ai_model_type_id: int
+    tech_tree_id: str
+    lab_id: str
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "id": "123e4567-e89b-12d3-a456-426614174000",
+                "name": "GPT-2",
+                "ai_model_type_id": 3,
+                "tech_tree_id": "123e4567-e89b-12d3-a456-426614174000",
+                "lab_id": "123e4567-e89b-12d3-a456-426614174000",
+            }
+        }
+    )

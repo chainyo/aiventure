@@ -15,9 +15,9 @@ from .core import (
     UUIDModel,
     Version,
 )
-from .employee import Employee, EmployeeBase
+from .employee import Employee, EmployeeBase, EmployeeRead
 from .game import GlobalGameState
-from .lab import Lab, LabBase
+from .lab import Lab, LabBase, LabRead
 from .links import EmployeeModifierLink, PlayerLabInvestmentLink
 from .location import LOCATION_MAPPING, Location, LocationBase, LocationEnum
 from .modifier import (
@@ -26,11 +26,12 @@ from .modifier import (
     Modifier,
     ModifierBase,
     ModifierEnum,
+    ModifierRead,
     ModifierType,
     ModifierTypeBase,
     ModifierTypeEnum,
 )
-from .player import Player, PlayerBase
+from .player import Player, PlayerBase, PlayerRead
 from .quality import QUALITY_MAPPING, Quality, QualityBase, QualityEnum
 from .role import (
     ROLE_CATEGORY_MAPPING,
@@ -70,11 +71,13 @@ __all__ = [
     # Employee
     "Employee",
     "EmployeeBase",
+    "EmployeeRead",
     # Game
     "GlobalGameState",
     # Lab
     "Lab",
     "LabBase",
+    "LabRead",
     # Links
     "EmployeeModifierLink",
     "PlayerLabInvestmentLink",
@@ -89,12 +92,14 @@ __all__ = [
     "Modifier",
     "ModifierBase",
     "ModifierEnum",
+    "ModifierRead",
     "ModifierType",
     "ModifierTypeBase",
     "ModifierTypeEnum",
     # Player
     "Player",
     "PlayerBase",
+    "PlayerRead",
     # Quality
     "QUALITY_MAPPING",
     "Quality",

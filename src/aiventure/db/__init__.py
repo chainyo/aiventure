@@ -4,6 +4,7 @@ from .ai_model import AIModelCRUD, AIModelTypeCRUD
 from .base import BaseCRUD
 from .location import LocationCRUD
 from .modifier import ModifierCRUD, ModifierTypeCRUD
+from .player import PlayerCRUD
 from .quality import QualityCRUD
 from .role import RoleCategoryCRUD, RoleCRUD
 from .user import UsersCRUD
@@ -16,6 +17,7 @@ __all__ = [
     "LocationCRUD",
     "ModifierCRUD",
     "ModifierTypeCRUD",
+    "PlayerCRUD",
     "QualityCRUD",
     "RoleCategoryCRUD",
     "RoleCRUD",

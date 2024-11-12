@@ -35,7 +35,7 @@ from aiventure.models import (
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Lifespan for the API."""
-    async_engine = create_async_engine(settings.db_connection_str, echo=True, future=True)
+    async_engine = create_async_engine(settings.db_connection_str, future=True)
 
     app.state.async_engine = async_engine
     app.state.async_session = async_sessionmaker(bind=async_engine, expire_on_commit=False)

@@ -3,6 +3,7 @@
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from pydantic import BaseModel, ConfigDict
 from sqlmodel import Field, Relationship, SQLModel
 from sqlmodel._compat import SQLModelConfig
 
@@ -90,3 +91,23 @@ class ModifierEnum(str, Enum):
     def item(self) -> ModifierBase:
         """Get the modifier."""
         return MODIFIER_MAPPING[self.value]
+
+
+class ModifierRead(BaseModel):
+    """Modifier read model."""
+
+    id: int
+    name: str
+    description: str
+    type_id: int
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "id": 1,
+                "name": "Boost model accuracy",
+                "description": "Boost model accuracy by 10%",
+                "type_id": 1,
+            }
+        }
+    )
