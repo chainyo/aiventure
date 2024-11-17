@@ -36,7 +36,7 @@ class PlayerCRUD(BaseCRUD):
     @handle_crud_operation
     async def update(self, player: PlayerBase) -> Player | None:
         """Update a player."""
-        _player = await self.get_by_id(player.id)
+        _player = await self.get_by_user_id(player.user_id)
 
         if _player is None:
             return None
@@ -54,10 +54,33 @@ class PlayerCRUD(BaseCRUD):
     async def read_by_id(self, player_id: str) -> PlayerRead | None:
         """Read a player by id."""
         _player = await self.get_by_id(player_id)
-        return PlayerRead.model_validate(_player) if _player else None
+        if _player is None:
+            return None
+
+        return PlayerRead(
+            id=_player.id,
+            name=_player.name,
+            funds=_player.funds,
+            user_id=_player.user_id,
+            labs=_player.labs,
+            investments=_player.investments,
+        )
 
     @handle_crud_operation
     async def read_by_user_id(self, user_id: str) -> PlayerRead | None:
         """Read a player by user id."""
         _player = await self.get_by_user_id(user_id)
-        return PlayerRead.model_validate(_player) if _player else None
+        if _player is None:
+            return None
+        print(_player)
+        print(_player.labs)
+        print(_player.investments)
+
+        return PlayerRead(
+            id=_player.id,
+            name=_player.name,
+            funds=_player.funds,
+            user_id=_player.user_id,
+            labs=_player.labs,
+            investments=_player.investments,
+        )

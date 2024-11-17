@@ -1,9 +1,11 @@
 """Player models."""
 
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict
-from sqlmodel import Relationship
+from sqlmodel import Field, Relationship
 from sqlmodel._compat import SQLModelConfig
 
 from aiventure.models.core import UUIDModel
@@ -19,7 +21,7 @@ class PlayerBase(UUIDModel):
 
     name: str
     funds: float
-    user_id: str
+    user_id: str = Field(foreign_key="users.id", sa_column_kwargs={"unique": True})
 
     model_config = SQLModelConfig(
         json_schema_extra={
@@ -38,8 +40,14 @@ class Player(PlayerBase, table=True):
 
     __tablename__ = "players"
 
-    labs: list["Lab"] = Relationship(back_populates="player")
-    investments: list["Lab"] = Relationship(back_populates="investors", link_model=PlayerLabInvestmentLink)
+    labs: list["Lab"] = Relationship(
+        back_populates="player", sa_relationship_kwargs={"lazy": "selectin"}
+    )
+    investments: list["Lab"] = Relationship(
+        back_populates="investors",
+        link_model=PlayerLabInvestmentLink,
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
 
 
 class PlayerRead(BaseModel):
@@ -48,6 +56,7 @@ class PlayerRead(BaseModel):
     id: str
     name: str
     funds: float
+    user_id: str
     labs: list["LabRead"] | None
     investments: list["LabRead"] | None
 

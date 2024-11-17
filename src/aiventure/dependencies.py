@@ -16,6 +16,7 @@ from aiventure.db import (
     BaseCRUD,
     LocationCRUD,
     ModifierTypeCRUD,
+    PlayerCRUD,
     QualityCRUD,
     RoleCategoryCRUD,
     RoleCRUD,
@@ -28,6 +29,7 @@ from aiventure.models import (
     QUALITY_MAPPING,
     ROLE_CATEGORY_MAPPING,
     ROLE_MAPPING,
+    PlayerBase,
     UserCreate,
 )
 
@@ -87,12 +89,15 @@ async def init_database(session: AsyncSession) -> None:
         await _try_create_or_update(role_crud, role)
 
     users_crud = UsersCRUD(session)
-    await _try_create_or_update(users_crud, UserCreate(email="test@test.com", password="test"))
+    user = await _try_create_or_update(users_crud, UserCreate(email="test@test.com", password="test"))
+
+    player_crud = PlayerCRUD(session)
+    await _try_create_or_update(player_crud, PlayerBase(name="test", funds=100000, user_id=user.id))
 
 
 async def _try_create_or_update(crud: BaseCRUD, model: BaseModel) -> None:
     """Try to create or update a model."""
     try:
-        await crud.create(model)
+        return await crud.create(model)
     except IntegrityError:
-        await crud.update(model)
+        return await crud.update(model)
