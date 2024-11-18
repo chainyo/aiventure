@@ -3,7 +3,7 @@
 from fastapi import APIRouter
 
 from aiventure import __version__
-from aiventure.models.core import Health, Version
+from aiventure.models import Health, Version
 
 
 router = APIRouter()

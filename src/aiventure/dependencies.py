@@ -1,7 +1,7 @@
 """Dependencies for the API."""
 
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import Any, AsyncGenerator
 
 from fastapi import FastAPI, Request, WebSocket
 from pydantic import BaseModel
@@ -95,7 +95,7 @@ async def init_database(session: AsyncSession) -> None:
     await _try_create_or_update(player_crud, PlayerBase(name="test", funds=100000, user_id=user.id))
 
 
-async def _try_create_or_update(crud: BaseCRUD, model: BaseModel) -> None:
+async def _try_create_or_update(crud: BaseCRUD, model: BaseModel) -> Any:
     """Try to create or update a model."""
     try:
         return await crud.create(model)
