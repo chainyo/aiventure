@@ -11,27 +11,8 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlmodel import SQLModel
 
 from aiventure.config import settings
-from aiventure.db import (
-    AIModelTypeCRUD,
-    BaseCRUD,
-    LocationCRUD,
-    ModifierTypeCRUD,
-    PlayerCRUD,
-    QualityCRUD,
-    RoleCategoryCRUD,
-    RoleCRUD,
-    UsersCRUD,
-)
-from aiventure.models import (
-    AI_MODEL_TYPE_MAPPING,
-    LOCATION_MAPPING,
-    MODIFIER_TYPE_MAPPING,
-    QUALITY_MAPPING,
-    ROLE_CATEGORY_MAPPING,
-    ROLE_MAPPING,
-    PlayerBase,
-    UserCreate,
-)
+from aiventure.db import BaseCRUD, PlayerCRUD, UsersCRUD
+from aiventure.models import PlayerBase, UserCreate
 
 
 @asynccontextmanager
@@ -64,40 +45,8 @@ async def get_async_session_from_websocket(websocket: WebSocket) -> AsyncGenerat
 
 async def init_database(session: AsyncSession) -> None:
     """Initialize the database."""
-    ai_model_type_crud = AIModelTypeCRUD(session)
-    for ai_model_type in AI_MODEL_TYPE_MAPPING.values():
-        await _try_create_or_update(ai_model_type_crud, ai_model_type)
+    async with UsersCRUD(session) as crud:
+        user = await crud.create(UserCreate(email="test@test.com", password="test"))
 
-    location_crud = LocationCRUD(session)
-    for location in LOCATION_MAPPING.values():
-        await _try_create_or_update(location_crud, location)
-
-    quality_crud = QualityCRUD(session)
-    for quality in QUALITY_MAPPING.values():
-        await _try_create_or_update(quality_crud, quality)
-
-    modifier_type_crud = ModifierTypeCRUD(session)
-    for modifier_type in MODIFIER_TYPE_MAPPING.values():
-        await _try_create_or_update(modifier_type_crud, modifier_type)
-
-    role_category_crud = RoleCategoryCRUD(session)
-    for role_category in ROLE_CATEGORY_MAPPING.values():
-        await _try_create_or_update(role_category_crud, role_category)
-
-    role_crud = RoleCRUD(session)
-    for role in ROLE_MAPPING.values():
-        await _try_create_or_update(role_crud, role)
-
-    users_crud = UsersCRUD(session)
-    user = await _try_create_or_update(users_crud, UserCreate(email="test@test.com", password="test"))
-
-    player_crud = PlayerCRUD(session)
-    await _try_create_or_update(player_crud, PlayerBase(name="test", funds=100000, user_id=user.id))
-
-
-async def _try_create_or_update(crud: BaseCRUD, model: BaseModel) -> Any:
-    """Try to create or update a model."""
-    try:
-        return await crud.create(model)
-    except IntegrityError:
-        return await crud.update(model)
+    async with PlayerCRUD(session) as crud:
+        await crud.create(PlayerBase(name="test", funds=100000, user_id=user.id))

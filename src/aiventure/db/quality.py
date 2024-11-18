@@ -3,14 +3,12 @@
 from sqlmodel import col, select
 
 from aiventure.db.base import BaseCRUD
-from aiventure.db.utils import handle_crud_operation
 from aiventure.models import Quality, QualityBase
 
 
 class QualityCRUD(BaseCRUD):
     """CRUD operations for the quality table."""
 
-    @handle_crud_operation
     async def create(self, quality: QualityBase) -> Quality:
         """Create a new quality."""
         quality = Quality(**quality.model_dump())
@@ -21,13 +19,11 @@ class QualityCRUD(BaseCRUD):
 
         return quality
 
-    @handle_crud_operation
     async def get_by_id(self, quality_id: int) -> Quality | None:
         """Get a quality by id."""
         quality = await self.session.execute(select(Quality).where(col(Quality.id) == quality_id))
         return quality.scalar_one_or_none()
 
-    @handle_crud_operation
     async def update(self, quality: QualityBase) -> Quality | None:
         """Update a quality."""
         _quality = await self.get_by_id(quality.id)

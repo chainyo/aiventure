@@ -3,14 +3,12 @@
 from sqlmodel import col, select
 
 from aiventure.db.base import BaseCRUD
-from aiventure.db.utils import handle_crud_operation
 from aiventure.models import Modifier, ModifierBase, ModifierType, ModifierTypeBase
 
 
 class ModifierTypeCRUD(BaseCRUD):
     """CRUD operations for the modifier_types table."""
 
-    @handle_crud_operation
     async def create(self, modifier_type: ModifierTypeBase) -> ModifierType:
         """Create a new modifier type."""
         modifier_type = ModifierType(**modifier_type.model_dump())
@@ -21,13 +19,11 @@ class ModifierTypeCRUD(BaseCRUD):
 
         return modifier_type
 
-    @handle_crud_operation
     async def get_by_id(self, modifier_type_id: int) -> ModifierType | None:
         """Get a modifier type by id."""
         modifier_type = await self.session.execute(select(ModifierType).where(col(ModifierType.id) == modifier_type_id))
         return modifier_type.scalar_one_or_none()
 
-    @handle_crud_operation
     async def update(self, modifier_type: ModifierTypeBase) -> ModifierType | None:
         """Update a modifier type."""
         _modifier_type = await self.get_by_id(modifier_type.id)
@@ -46,7 +42,6 @@ class ModifierTypeCRUD(BaseCRUD):
 class ModifierCRUD(BaseCRUD):
     """CRUD operations for the modifiers table."""
 
-    @handle_crud_operation
     async def create(self, modifier: ModifierBase) -> Modifier:
         """Create a new modifier."""
         modifier = Modifier(**modifier.model_dump())
@@ -57,13 +52,11 @@ class ModifierCRUD(BaseCRUD):
 
         return modifier
 
-    @handle_crud_operation
     async def get_by_id(self, modifier_id: int) -> Modifier | None:
         """Get a modifier by id."""
         modifier = await self.session.execute(select(Modifier).where(col(Modifier.id) == modifier_id))
         return modifier.scalar_one_or_none()
 
-    @handle_crud_operation
     async def update(self, modifier: ModifierBase) -> Modifier | None:
         """Update a modifier."""
         _modifier = await self.get_by_id(modifier.id)

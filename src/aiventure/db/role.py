@@ -3,14 +3,12 @@
 from sqlmodel import col, select
 
 from aiventure.db.base import BaseCRUD
-from aiventure.db.utils import handle_crud_operation
 from aiventure.models import Role, RoleBase, RoleCategory, RoleCategoryBase
 
 
 class RoleCategoryCRUD(BaseCRUD):
     """CRUD operations for the role_categories table."""
 
-    @handle_crud_operation
     async def create(self, role_category: RoleCategoryBase) -> RoleCategory:
         """Create a new role category."""
         role_category = RoleCategory(**role_category.model_dump())
@@ -21,13 +19,11 @@ class RoleCategoryCRUD(BaseCRUD):
 
         return role_category
 
-    @handle_crud_operation
     async def get_by_id(self, role_category_id: int) -> RoleCategory | None:
         """Get a role category by id."""
         role_category = await self.session.execute(select(RoleCategory).where(col(RoleCategory.id) == role_category_id))
         return role_category.scalar_one_or_none()
 
-    @handle_crud_operation
     async def update(self, role_category: RoleCategoryBase) -> RoleCategory | None:
         """Update a role category."""
         _role_category = await self.get_by_id(role_category.id)
@@ -48,7 +44,6 @@ class RoleCategoryCRUD(BaseCRUD):
 class RoleCRUD(BaseCRUD):
     """CRUD operations for the roles table."""
 
-    @handle_crud_operation
     async def create(self, role: RoleBase) -> Role:
         """Create a new role."""
         role = Role(**role.model_dump())
@@ -59,13 +54,11 @@ class RoleCRUD(BaseCRUD):
 
         return role
 
-    @handle_crud_operation
     async def get_by_id(self, role_id: int) -> Role | None:
         """Get a role by id."""
         role = await self.session.execute(select(Role).where(col(Role.id) == role_id))
         return role.scalar_one_or_none()
 
-    @handle_crud_operation
     async def update(self, role: RoleBase) -> Role | None:
         """Update a role."""
         _role = await self.get_by_id(role.id)

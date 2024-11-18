@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, delete, select
 
 from aiventure.db.base import BaseCRUD
-from aiventure.db.utils import handle_crud_operation
 from aiventure.models import User, UserCreate, UserPatch
 from aiventure.utils import PasswordManager
 
@@ -20,7 +19,6 @@ class UsersCRUD(BaseCRUD):
         super().__init__(session)
         self.pwmanager = PasswordManager()
 
-    @handle_crud_operation
     async def create(self, data: UserCreate) -> User:
         """Create a user."""
         values = data.model_dump()
@@ -34,19 +32,16 @@ class UsersCRUD(BaseCRUD):
 
         return user
 
-    @handle_crud_operation
     async def get_by_id(self, user_id: str | UUID) -> User | None:
         """Get a user."""
         user = await self.session.execute(select(User).where(col(User.id) == str(user_id)))
         return user.scalar_one_or_none()
 
-    @handle_crud_operation
     async def get_by_email(self, email: str) -> User | None:
         """Get a user."""
         user = await self.session.execute(select(User).where(col(User.email) == email))
         return user.scalar_one_or_none()
 
-    @handle_crud_operation
     async def authenticate(self, email: str, password: str) -> User | None:
         """Verify a user."""
         user = await self.get_by_email(email)
@@ -61,7 +56,6 @@ class UsersCRUD(BaseCRUD):
         except VerifyMismatchError:
             return None
 
-    @handle_crud_operation
     async def delete(self, email: str) -> bool | None:
         """Remove a user."""
         user = await self.get_by_email(email)
@@ -74,7 +68,6 @@ class UsersCRUD(BaseCRUD):
 
         return True
 
-    @handle_crud_operation
     async def promote_to_admin(self, email: str) -> User | None:
         """Promote a user to admin."""
         user = await self.get_by_email(email)
@@ -89,7 +82,6 @@ class UsersCRUD(BaseCRUD):
 
         return user
 
-    @handle_crud_operation
     async def update(self, data: UserPatch) -> User | None:
         """Update a user."""
         _user = await self.get_by_email(data.email)

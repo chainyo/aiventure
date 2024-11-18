@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import enum
 import uuid
+from typing import List
 
 from pydantic import BaseModel, ConfigDict
+from sqlalchemy.orm import Mapped
 from sqlmodel import Column, Enum, Field, Relationship, SQLModel
 from sqlmodel._compat import SQLModelConfig
 
@@ -236,7 +238,7 @@ class AIModel(AIModelBase, table=True):
 
     __tablename__ = "ai_models"
 
-    lab: Lab = Relationship(back_populates="models")
+    # lab: Lab = Relationship(back_populates="models", sa_relationship_kwargs={"lazy": "selectin"})
 
 
 class EmployeeBase(UUIDModel):
@@ -273,8 +275,12 @@ class Employee(EmployeeBase, table=True):
 
     __tablename__ = "employees"
 
-    modifiers: list[Modifier] = Relationship(back_populates="employees", link_model=EmployeeModifierLink)
-    lab: Lab | None = Relationship(back_populates="employees")
+    # modifiers: list[Modifier] = Relationship(
+    #     back_populates="employees",
+    #     link_model=EmployeeModifierLink,
+    #     sa_relationship_kwargs={"lazy": "selectin"},
+    # )
+    # lab: Lab | None = Relationship(back_populates="employees", sa_relationship_kwargs={"lazy": "selectin"})
 
 
 class GlobalGameState(BaseModel):
@@ -323,10 +329,14 @@ class Lab(LabBase, table=True):
 
     __tablename__ = "labs"
 
-    employees: list[Employee] = Relationship(back_populates="lab")
-    models: list[AIModel] = Relationship(back_populates="lab")
-    investors: list[Player] = Relationship(back_populates="investments", link_model=PlayerLabInvestmentLink)
-    player: Player = Relationship(back_populates="labs")
+    # employees: Mapped[list[Employee]] = Relationship(back_populates="lab", sa_relationship_kwargs={"lazy": "selectin"})
+    # models: Mapped[list["AIModel"]] = Relationship(back_populates="lab", sa_relationship_kwargs={"lazy": "selectin"})
+    # investors: Mapped[list["Player"]] = Relationship(
+    #     back_populates="investments",
+    #     link_model=PlayerLabInvestmentLink,
+    #     sa_relationship_kwargs={"lazy": "selectin"},
+    # )
+    # player: Player = Relationship(back_populates="labs", sa_relationship_kwargs={"lazy": "selectin"})
 
 
 class LocationBase(SQLModel):
@@ -409,7 +419,11 @@ class Modifier(ModifierBase, table=True):
 
     __tablename__ = "modifiers"
 
-    employees: list[Employee] = Relationship(back_populates="modifiers", link_model=EmployeeModifierLink)
+    # employees: list[Employee] = Relationship(
+    #     back_populates="modifiers",
+    #     link_model=EmployeeModifierLink,
+    #     sa_relationship_kwargs={"lazy": "selectin"},
+    # )
 
 
 MODIFIER_MAPPING: dict[str, ModifierBase] = {
@@ -441,12 +455,12 @@ class Player(PlayerBase, table=True):
 
     __tablename__ = "players"
 
-    labs: list[Lab] = Relationship(back_populates="player", sa_relationship_kwargs={"lazy": "selectin"})
-    investments: list[Lab] = Relationship(
-        back_populates="investors",
-        link_model=PlayerLabInvestmentLink,
-        sa_relationship_kwargs={"lazy": "selectin"},
-    )
+    # labs: List["Lab"] = Relationship(back_populates="player", sa_relationship_kwargs={"lazy": "selectin"})
+    # investments: list[Lab] = Relationship(
+    #     back_populates="investors",
+    #     link_model=PlayerLabInvestmentLink,
+    #     sa_relationship_kwargs={"lazy": "selectin"},
+    # )
 
 
 class QualityBase(SQLModel):
@@ -823,209 +837,4 @@ class Version(BaseModel):
 
     model_config = ConfigDict(
         json_schema_extra={"example": {"version": "0.1.0"}},
-    )
-
-
-class AIModelRead(BaseModel):
-    """AI model read model."""
-
-    id: str
-    name: str
-    ai_model_type_id: int
-    tech_tree_id: str
-    lab_id: str
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "id": "123e4567-e89b-12d3-a456-426614174000",
-                "name": "GPT-2",
-                "ai_model_type_id": 3,
-                "tech_tree_id": "123e4567-e89b-12d3-a456-426614174000",
-                "lab_id": "123e4567-e89b-12d3-a456-426614174000",
-            }
-        }
-    )
-
-
-class EmployeeRead(BaseModel):
-    """Employee read model."""
-
-    id: str
-    name: str
-    salary: int
-    image_url: str
-    role_id: int
-    quality_id: int
-    modifiers: list[ModifierRead]
-    lab_id: str | None
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "id": "123e4567-e89b-12d3-a456-426614174000",
-                "name": "John Doe",
-                "salary": 100000,
-                "image_url": "https://avatar.iran.liara.run/public",
-                "role_id": 1,
-                "quality_id": 1,
-                "modifiers": [
-                    {
-                        "id": 1,
-                        "name": "Boost model accuracy",
-                        "description": "Boost model accuracy by 10%",
-                        "type_id": 1,
-                    }
-                ],
-                "lab_id": "123e4567-e89b-12d3-a456-426614174000",
-            }
-        }
-    )
-
-
-class LabRead(BaseModel):
-    """Lab read model."""
-
-    id: str
-    name: str
-    location: LocationEnum = Field(sa_column=Column(Enum(LocationEnum)))
-    valuation: float
-    income: float
-    tech_tree_id: str
-    player_id: str
-    employees: list[EmployeeRead]
-    models: list[AIModelRead]
-    investors: list[PlayerRead]
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "id": "123e4567-e89b-12d3-a456-426614174000",
-                "name": "Lab Zero",
-                "location": "us",
-                "valuation": 1000000,
-                "income": 100000,
-                "tech_tree_id": "123e4567-e89b-12d3-a456-426614174001",
-                "player_id": "123e4567-e89b-12d3-a456-426614174002",
-                "employees": [
-                    {
-                        "id": "123e4567-e89b-12d3-a456-426614174003",
-                        "name": "John Doe",
-                        "salary": 100000,
-                        "image_url": "https://avatar.iran.liara.run/public",
-                        "role_id": 1,
-                        "quality_id": 1,
-                        "modifiers": [],
-                        "lab_id": "123e4567-e89b-12d3-a456-426614174000",
-                    }
-                ],
-                "models": [
-                    {
-                        "id": "123e4567-e89b-12d3-a456-426614174004",
-                        "name": "GPT-2",
-                        "ai_model_type_id": 3,
-                        "tech_tree_id": "123e4567-e89b-12d3-a456-426614174000",
-                        "lab_id": "123e4567-e89b-12d3-a456-426614174000",
-                    }
-                ],
-                "investors": [
-                    {
-                        "id": "123e4567-e89b-12d3-a456-426614174005",
-                        "name": "John Doe",
-                        "funds": 100000,
-                        "labs": [],
-                        "investments": [],
-                    }
-                ],
-            }
-        }
-    )
-
-
-class ModifierRead(BaseModel):
-    """Modifier read model."""
-
-    id: int
-    name: str
-    description: str
-    type_id: int
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "id": 1,
-                "name": "Boost model accuracy",
-                "description": "Boost model accuracy by 10%",
-                "type_id": 1,
-            }
-        }
-    )
-
-
-class PlayerRead(BaseModel):
-    """Player read model."""
-
-    id: str
-    name: str
-    funds: float
-    user_id: str
-    labs: list[LabRead] | None
-    investments: list[LabRead] | None
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "id": "123e4567-e89b-12d3-a456-426614174000",
-                "name": "John Doe",
-                "funds": 100000,
-                "labs": [
-                    {
-                        "id": "123e4567-e89b-12d3-a456-426614174000",
-                        "name": "Lab Zero",
-                        "location": "us",
-                        "valuation": 1000000,
-                        "income": 100000,
-                        "tech_tree_id": "123e4567-e89b-12d3-a456-426614174001",
-                        "player_id": "123e4567-e89b-12d3-a456-426614174002",
-                        "employees": [
-                            {
-                                "id": "123e4567-e89b-12d3-a456-426614174003",
-                                "name": "Jane Doe",
-                                "salary": 100000,
-                                "image_url": "https://avatar.iran.liara.run/public",
-                                "role_id": 1,
-                                "quality_id": 1,
-                                "modifiers": [],
-                                "lab_id": "123e4567-e89b-12d3-a456-426614174000",
-                            }
-                        ],
-                        "models": [
-                            {
-                                "id": "123e4567-e89b-12d3-a456-426614174004",
-                                "name": "GPT-2",
-                                "ai_model_type_id": 3,
-                                "tech_tree_id": "123e4567-e89b-12d3-a456-426614174000",
-                                "lab_id": "123e4567-e89b-12d3-a456-426614174000",
-                            }
-                        ],
-                        "investors": [
-                            {
-                                "id": "123e4567-e89b-12d3-a456-426614174005",
-                                "name": "Jill Doe",
-                                "funds": 100000,
-                                "labs": [],
-                                "investments": [],
-                            }
-                        ],
-                    }
-                ],
-                "investments": [
-                    {
-                        "player_id": "123e4567-e89b-12d3-a456-426614174000",
-                        "lab_id": "123e4567-e89b-12d3-a456-426614174000",
-                        "part": 0.5,
-                    }
-                ],
-            }
-        }
     )
