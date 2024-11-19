@@ -1,6 +1,7 @@
 """Authentication routes."""
 
 from datetime import timedelta
+from typing import AsyncGenerator
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi import status as http_status
@@ -25,8 +26,10 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/authenticate")
 router = APIRouter()
 
 
-async def get_users_crud(session: AsyncSession = Depends(get_async_session)) -> UsersCRUD:
-    return UsersCRUD(session=session)
+async def get_users_crud(session: AsyncSession = Depends(get_async_session)) -> AsyncGenerator[UsersCRUD, None]:
+    """Get the users crud."""
+    async with UsersCRUD(session) as crud:
+        yield crud
 
 
 async def get_current_user(

@@ -4,10 +4,12 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from types import TracebackType
-from typing import Any
+from typing import Any, TypeVar
 
-from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
+
+
+T = TypeVar("T", bound="BaseCRUD")
 
 
 class BaseCRUD(ABC):
@@ -17,7 +19,7 @@ class BaseCRUD(ABC):
         """Initialize the base CRUD class."""
         self.session = session
 
-    async def __aenter__(self) -> BaseCRUD:
+    async def __aenter__(self: T) -> T:
         """Enter the context manager."""
         return self
 
@@ -26,15 +28,19 @@ class BaseCRUD(ABC):
     ) -> None:
         """Exit the context manager."""
         if exc_type is not None:
-            await self.session.rollback()
+            await self.rollback()
         await self.session.close()
 
+    async def rollback(self) -> None:
+        """Rollback the session."""
+        await self.session.rollback()
+
     @abstractmethod
-    async def create(self, model: BaseModel) -> Any:
+    async def create(self, *args: Any, **kwargs: Any) -> Any:
         """Create a new model."""
         pass
 
     @abstractmethod
-    async def update(self, model: BaseModel) -> Any:
+    async def update(self, *args: Any, **kwargs: Any) -> Any:
         """Update an existing model."""
         pass

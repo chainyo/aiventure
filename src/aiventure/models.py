@@ -1,13 +1,10 @@
 """Models for AIVenture."""
 
-from __future__ import annotations
-
 import enum
 import uuid
 from typing import List
 
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy.orm import Mapped
 from sqlmodel import Column, Enum, Field, Relationship, SQLModel
 from sqlmodel._compat import SQLModelConfig
 
@@ -21,7 +18,7 @@ class AIModelTypeEnum(str, enum.Enum):
     NLP = "nlp"
 
     @property
-    def item(self) -> AIModelTypeBase:
+    def item(self) -> "AIModelTypeBase":
         """Get the item."""
         return AI_MODEL_TYPE_MAPPING[self]
 
@@ -34,7 +31,7 @@ class LocationEnum(str, enum.Enum):
     ASIA = "asia"
 
     @property
-    def item(self) -> LocationBase:
+    def item(self) -> "LocationBase":
         """Get the location."""
         return LOCATION_MAPPING[self.value]
 
@@ -47,7 +44,7 @@ class ModifierTypeEnum(str, enum.Enum):
     LOCATION = "location"
 
     @property
-    def item(self) -> ModifierTypeBase:
+    def item(self) -> "ModifierTypeBase":
         """Get the modifier type."""
         return MODIFIER_TYPE_MAPPING[self.value]
 
@@ -58,7 +55,7 @@ class ModifierEnum(str, enum.Enum):
     # TODO: Add modifiers
 
     @property
-    def item(self) -> ModifierBase:
+    def item(self) -> "ModifierBase":
         """Get the modifier."""
         return MODIFIER_MAPPING[self.value]
 
@@ -75,7 +72,7 @@ class QualityEnum(str, enum.Enum):
     STAR = "star"
 
     @property
-    def item(self) -> QualityBase:
+    def item(self) -> "QualityBase":
         """Get the quality."""
         return QUALITY_MAPPING[self.value]
 
@@ -91,7 +88,7 @@ class RoleCategoryEnum(str, enum.Enum):
     HR = "hr"
 
     @property
-    def item(self) -> RoleCategoryBase:
+    def item(self) -> "RoleCategoryBase":
         """Get the category."""
         return ROLE_CATEGORY_MAPPING[self.value]
 
@@ -132,7 +129,7 @@ class RoleEnum(str, enum.Enum):
     DIVERSITY_INCLUSION_SPECIALIST = "diversity_inclusion_specialist"
 
     @property
-    def item(self) -> RoleBase:
+    def item(self) -> "RoleBase":
         """Get the role object for this enum value."""
         return ROLE_MAPPING[self.value]
 
@@ -329,14 +326,14 @@ class Lab(LabBase, table=True):
 
     __tablename__ = "labs"
 
-    # employees: Mapped[list[Employee]] = Relationship(back_populates="lab", sa_relationship_kwargs={"lazy": "selectin"})
-    # models: Mapped[list["AIModel"]] = Relationship(back_populates="lab", sa_relationship_kwargs={"lazy": "selectin"})
-    # investors: Mapped[list["Player"]] = Relationship(
+    # employees: list[Employee] = Relationship(back_populates="lab", sa_relationship_kwargs={"lazy": "selectin"})
+    # models: list[AIModel] = Relationship(back_populates="lab", sa_relationship_kwargs={"lazy": "selectin"})
+    # investors: list[Player] = Relationship(
     #     back_populates="investments",
     #     link_model=PlayerLabInvestmentLink,
     #     sa_relationship_kwargs={"lazy": "selectin"},
     # )
-    # player: Player = Relationship(back_populates="labs", sa_relationship_kwargs={"lazy": "selectin"})
+    player: "Player" = Relationship(back_populates="labs", sa_relationship_kwargs={"lazy": "selectin"})
 
 
 class LocationBase(SQLModel):
@@ -455,7 +452,7 @@ class Player(PlayerBase, table=True):
 
     __tablename__ = "players"
 
-    # labs: List["Lab"] = Relationship(back_populates="player", sa_relationship_kwargs={"lazy": "selectin"})
+    labs: List["Lab"] = Relationship(back_populates="player", sa_relationship_kwargs={"lazy": "selectin"})
     # investments: list[Lab] = Relationship(
     #     back_populates="investors",
     #     link_model=PlayerLabInvestmentLink,

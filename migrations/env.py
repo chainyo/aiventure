@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlmodel import SQLModel
 
 from aiventure.config import settings
+
 # NOTE: These imports ensure all tables are created
 from aiventure.models import (
     AIModel,

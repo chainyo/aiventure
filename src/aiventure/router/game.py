@@ -37,9 +37,17 @@ async def game_ws(
                     case "retrieve-player-data":
                         async with PlayerCRUD(session) as crud:
                             player = await crud.get_by_user_id(user.id)
+                            labs = player.labs
+                            investments = player.investments
 
                         if player:
-                            await websocket.send_json(player.model_dump())
+                            await websocket.send_json(
+                                {
+                                    **player.model_dump(),
+                                    "labs": [lab.model_dump() for lab in labs],
+                                    "investments": [investment.model_dump() for investment in investments],
+                                }
+                            )
                         else:
                             await websocket.send_json({"error": "Player not found"})
                     case "test":

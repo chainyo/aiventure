@@ -1,17 +1,16 @@
 """Dependencies for the API."""
 
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator
+from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request, WebSocket
-from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlmodel import SQLModel
 
 from aiventure.config import settings
-from aiventure.db import BaseCRUD, PlayerCRUD, UsersCRUD
+from aiventure.db import PlayerCRUD, UsersCRUD
 from aiventure.models import PlayerBase, UserCreate
 
 
@@ -46,7 +45,14 @@ async def get_async_session_from_websocket(websocket: WebSocket) -> AsyncGenerat
 async def init_database(session: AsyncSession) -> None:
     """Initialize the database."""
     async with UsersCRUD(session) as crud:
-        user = await crud.create(UserCreate(email="test@test.com", password="test"))
+        try:
+            user = await crud.create(UserCreate(email="test@test.com", password="test"))
+        except IntegrityError:
+            await crud.rollback()
+            user = await crud.get_by_email(email="test@test.com")
 
     async with PlayerCRUD(session) as crud:
-        await crud.create(PlayerBase(name="test", funds=100000, user_id=user.id))
+        try:
+            await crud.create(PlayerBase(name="test", funds=100000, user_id=user.id))
+        except IntegrityError:
+            pass
