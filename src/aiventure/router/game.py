@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from aiventure.db import PlayerCRUD
 from aiventure.dependencies import get_async_session_from_websocket
 from aiventure.gcmanager import GameConnectionManager
-from aiventure.models import PlayerDataResponse, User
+from aiventure.models import PlayerBase, PlayerDataResponse, User
 
 
 logger = logging.getLogger("uvicorn.error")
@@ -23,6 +23,7 @@ router = APIRouter()
 class GameAction(str, Enum):
     """Game action."""
 
+    CREATE_PLAYER = "create-player"
     RETRIEVE_PLAYER_DATA = "retrieve-player-data"
 
 
@@ -59,6 +60,30 @@ async def game_ws(
 
             try:
                 match message.action:
+                    case GameAction.CREATE_PLAYER:
+                        async with PlayerCRUD(session) as crud:
+                            player = await crud.create(PlayerBase(name=message.payload["name"], user_id=user.id))
+                            if player:
+                                await websocket.send_json(
+                                    GameMessageResponse(
+                                        action=GameAction.CREATE_PLAYER,
+                                        payload=PlayerDataResponse(
+                                            id=player.id,
+                                            name=player.name,
+                                            funds=player.funds,
+                                            labs=[],
+                                            investments=[],
+                                        ).model_dump(),
+                                    ).model_dump()
+                                )
+                            else:
+                                await websocket.send_json(
+                                    GameMessageResponse(
+                                        action=GameAction.CREATE_PLAYER,
+                                        payload={},
+                                        error="Failed to create player",
+                                    ).model_dump()
+                                )
                     case GameAction.RETRIEVE_PLAYER_DATA:
                         async with PlayerCRUD(session) as crud:
                             player = await crud.get_by_user_id(user.id)

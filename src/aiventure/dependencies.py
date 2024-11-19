@@ -46,13 +46,7 @@ async def init_database(session: AsyncSession) -> None:
     """Initialize the database."""
     async with UsersCRUD(session) as crud:
         try:
-            user = await crud.create(UserCreate(email="test@test.com", password="test"))
+            await crud.create(UserCreate(email="test@test.com", password="test"))
         except IntegrityError:
             await crud.rollback()
-            user = await crud.get_by_email(email="test@test.com")
-
-    async with PlayerCRUD(session) as crud:
-        try:
-            await crud.create(PlayerBase(name="test", funds=100000, user_id=user.id))
-        except IntegrityError:
-            pass
+            await crud.get_by_email(email="test@test.com")

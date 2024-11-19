@@ -2,12 +2,14 @@
     import { onMount } from 'svelte';
     import { goto } from "$app/navigation";
     import { ChevronDown, LoaderCircle } from "lucide-svelte";
-
+    
+    import { playerStore, type PlayerData } from "$lib/stores/playerStore";
     import { userStore } from "$lib/stores/userStore";
     import { Badge } from "$lib/components/ui/badge/index.js";
     import * as Avatar from "$lib/components/ui/avatar/index.js";
     import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
     import * as Sidebar from "$lib/components/ui/sidebar/index.js";
+    import { Skeleton } from "$lib/components/ui/skeleton/index.js";
 
 
     let { children } = $props();
@@ -16,20 +18,29 @@
     let needsVerification = $state(false);
 
     onMount(async () => {
-        const initialized = userStore.initializeFromLocalStorage();
+    try {
+        const initialized = await userStore.initializeFromLocalStorage();
 
         if (!initialized) {
-            // User is not logged in, redirect to login page
-            goto('/login');
-        // } else if ($userStore && !$userStore.is_verified) {
-        //     // NOTE: We don't need to verify email for now
-        //     // needsVerification = true;
-        } else {
-            // Optionally, you can fetch additional user data here if needed
-            await userStore.fetchUser();
+            await goto('/login');
+            return;
         }
-        isLoading = false;
+
+        // Fetch user data first
+        await userStore.fetchUser();
+        
+        // Initialize player data if needed
+        // if (!$playerStore) {
+        //     await playerStore.initialize();
+        // }
+
         sidebarOpen = true;
+    } catch (error) {
+        console.error('Failed to initialize:', error);
+        await goto('/login');
+    } finally {
+        isLoading = false;
+        }
     });
 </script>
 
@@ -48,11 +59,17 @@
                             {/snippet}
                         </DropdownMenu.Trigger>
                         <DropdownMenu.Content class="w-[--bits-dropdown-menu-anchor-width]">
-                            {#each [1, 2, 3] as lab}
-                            <DropdownMenu.Item>
-                                <span>Lab {lab}</span>
-                            </DropdownMenu.Item>
-                            {/each}
+                            {#if $playerStore?.labs}
+                                {#each $playerStore.labs as lab}
+                                    <DropdownMenu.Item>
+                                        <span>Lab {lab.name}</span>
+                                    </DropdownMenu.Item>
+                                {/each}
+                            {:else}
+                                <DropdownMenu.Item disabled>
+                                    <span>No labs found</span>
+                                </DropdownMenu.Item>
+                            {/if}
                         </DropdownMenu.Content>
                     </DropdownMenu.Root>
                 </Sidebar.MenuItem>
@@ -64,19 +81,34 @@
         </Sidebar.Content>
         <Sidebar.Footer class="pb-8">
             <Sidebar.Menu class="flex flex-row items-center mx-auto justify-center gap-4">
-                <Sidebar.MenuItem>
-                    <Avatar.Root class="relative">
-                        <Avatar.Image src="https://github.com/shadcn.png" alt="@shadcn" />
-                        <Avatar.Fallback>CN</Avatar.Fallback>
-                    </Avatar.Root>
-                </Sidebar.MenuItem>
-                <Sidebar.MenuItem>
-                    {#if $userStore}
-                    <Badge variant="outline">{$userStore.email}</Badge>
-                    {:else}
-                    <Badge variant="outline">ID: 12345</Badge>
-                    {/if}
-                </Sidebar.MenuItem>
+                {#if $playerStore}
+                    <Sidebar.MenuItem>
+                        <Avatar.Root class="relative w-12 h-12">
+                            <Avatar.Image src="https://avatar.iran.liara.run/public" alt="avatar" />
+                            <Avatar.Fallback>{$playerStore.name.slice(0, 2)}</Avatar.Fallback>
+                        </Avatar.Root>
+                    </Sidebar.MenuItem>
+                    <div class="flex flex-col gap-2">
+                        <Sidebar.MenuItem>
+                            <Badge class="max-w-full" variant="outline">{$playerStore.name}</Badge>
+                        </Sidebar.MenuItem>
+                        <Sidebar.MenuItem>
+                            <Badge class="max-w-full">$ {$playerStore.funds}</Badge>
+                        </Sidebar.MenuItem>
+                    </div>
+                {:else}
+                    <Sidebar.MenuItem>
+                        <Skeleton class="size-8 rounded-full" />
+                    </Sidebar.MenuItem>
+                    <div class="flex flex-col">
+                        <Sidebar.MenuItem>
+                            <Skeleton class="h-4 w-[125px]" />
+                        </Sidebar.MenuItem>
+                        <Sidebar.MenuItem>
+                            <Skeleton class="h-4 w-[125px]" />
+                        </Sidebar.MenuItem>
+                    </div>
+                {/if}
             </Sidebar.Menu>
         </Sidebar.Footer>
     </Sidebar.Root>

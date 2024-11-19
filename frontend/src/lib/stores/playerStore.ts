@@ -1,4 +1,4 @@
-import { writable } from "svelte/store";
+import { writable, get } from "svelte/store";
 
 export interface Player {
     id: string;
@@ -28,4 +28,19 @@ export interface PlayerData {
     investments: LabRead[];
 }
 
-export const playerStore = writable<PlayerData | null>(null);
+function createPlayerStore() {
+    const { subscribe, set, update } = writable<PlayerData | null>(null);
+
+    return {
+        subscribe,
+        set,
+        update,
+        reset: () => set(null),
+        initialize: async (data: PlayerData) => {
+            set(data);
+        },
+        getCurrentPlayer: () => get({ subscribe }),
+    };
+}
+
+export const playerStore = createPlayerStore();

@@ -13,10 +13,17 @@ app = Typer(name="AI Venture CLI", no_args_is_help=True)
 
 
 @app.command()
-def run(build: Annotated[bool, typer.Option("--build")] = False) -> None:
+def run(
+    build: Annotated[bool, typer.Option("--build")] = False,
+    migrate: Annotated[bool, typer.Option("--migrate")] = False,
+) -> None:
     """Run the API."""
     if build:
         os.system("bun run build")
+
+    if migrate:
+        os.system("uv run alembic upgrade head")
+
     os.system("uv run fastapi dev src/aiventure/api.py --reload")
 
 

@@ -3,6 +3,8 @@
  */
 
 export const GameActions = {
+    CREATE_LAB: "create-lab",
+    CREATE_PLAYER: "create-player",
     RETRIEVE_PLAYER_DATA: "retrieve-player-data",
 } as const;
 
