@@ -1,3 +1,9 @@
+/**
+ * WebSocket client for the game.
+ */
+
+import type { GameAction, GameMessage, GameMessageResponse } from "./types/websocket";
+
 export class GameWebSocketClient {
     private socket: WebSocket | null = null;
     public token: string | null = null;
@@ -83,23 +89,22 @@ export class GameWebSocketClient {
         }
     }
 
-    sendCommand(command: string, params: Record<string, any> = {}): void {
+    sendCommand(action: GameAction, payload: Record<string, any> = {}): void {
         if (!this.socket) {
             throw new Error('WebSocket not connected');
         }
 
-        const message = { command, ...params };
-        console.log('Sending:', message);
+        const message: GameMessage = { action, payload };
         this.socket.send(JSON.stringify(message));
     }
 
-    onMessage(callback: (data: any) => void): void {
+    onMessage(callback: (data: GameMessageResponse) => void): void {
         if (!this.socket) {
             throw new Error('WebSocket not connected');
         }
 
         this.socket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
+            const data: GameMessageResponse = JSON.parse(event.data);
             callback(data);
         };
     }

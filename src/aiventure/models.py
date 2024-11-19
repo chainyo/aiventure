@@ -2,7 +2,6 @@
 
 import enum
 import uuid
-from typing import List
 
 from pydantic import BaseModel, ConfigDict
 from sqlmodel import Column, Enum, Field, Relationship, SQLModel
@@ -328,11 +327,11 @@ class Lab(LabBase, table=True):
 
     # employees: list[Employee] = Relationship(back_populates="lab", sa_relationship_kwargs={"lazy": "selectin"})
     # models: list[AIModel] = Relationship(back_populates="lab", sa_relationship_kwargs={"lazy": "selectin"})
-    # investors: list[Player] = Relationship(
-    #     back_populates="investments",
-    #     link_model=PlayerLabInvestmentLink,
-    #     sa_relationship_kwargs={"lazy": "selectin"},
-    # )
+    investors: list["Player"] = Relationship(
+        back_populates="investments",
+        link_model=PlayerLabInvestmentLink,
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
     player: "Player" = Relationship(back_populates="labs", sa_relationship_kwargs={"lazy": "selectin"})
 
 
@@ -452,12 +451,12 @@ class Player(PlayerBase, table=True):
 
     __tablename__ = "players"
 
-    labs: List["Lab"] = Relationship(back_populates="player", sa_relationship_kwargs={"lazy": "selectin"})
-    # investments: list[Lab] = Relationship(
-    #     back_populates="investors",
-    #     link_model=PlayerLabInvestmentLink,
-    #     sa_relationship_kwargs={"lazy": "selectin"},
-    # )
+    labs: list["Lab"] = Relationship(back_populates="player", sa_relationship_kwargs={"lazy": "selectin"})
+    investments: list["Lab"] = Relationship(
+        back_populates="investors",
+        link_model=PlayerLabInvestmentLink,
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
 
 
 class QualityBase(SQLModel):
@@ -835,3 +834,26 @@ class Version(BaseModel):
     model_config = ConfigDict(
         json_schema_extra={"example": {"version": "0.1.0"}},
     )
+
+
+class LabRead(BaseModel):
+    """Lab read model"""
+
+    id: str
+    name: str
+    location: LocationEnum
+    valuation: float
+    income: float
+    tech_tree_id: str
+    player_id: str
+    investors: list[Player]
+
+
+class PlayerDataResponse(BaseModel):
+    """Response model for retrieve-player-data"""
+
+    id: str
+    name: str
+    funds: float
+    labs: list[LabRead]
+    investments: list[LabRead]

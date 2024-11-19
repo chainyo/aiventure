@@ -1,20 +1,44 @@
 """Game router."""
 
 import logging
+from enum import Enum
+from typing import Any
 
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from aiventure.db import PlayerCRUD
 from aiventure.dependencies import get_async_session_from_websocket
 from aiventure.gcmanager import GameConnectionManager
-from aiventure.models import User
+from aiventure.models import PlayerDataResponse, User
 
 
 logger = logging.getLogger("uvicorn.error")
 
 game_connection_manager = GameConnectionManager()
 router = APIRouter()
+
+
+class GameAction(str, Enum):
+    """Game action."""
+
+    RETRIEVE_PLAYER_DATA = "retrieve-player-data"
+
+
+class GameMessage(BaseModel):
+    """Game message."""
+
+    action: GameAction
+    payload: dict[str, Any]
+
+
+class GameMessageResponse(BaseModel):
+    """Game message response."""
+
+    action: GameAction
+    payload: dict[str, Any]
+    error: str | None = None
 
 
 @router.websocket("/ws")
@@ -31,25 +55,37 @@ async def game_ws(
 
         while True:
             data = await websocket.receive_json()
+            message = GameMessage(**data)
 
             try:
-                match data.get("command"):
-                    case "retrieve-player-data":
+                match message.action:
+                    case GameAction.RETRIEVE_PLAYER_DATA:
                         async with PlayerCRUD(session) as crud:
                             player = await crud.get_by_user_id(user.id)
-                            labs = player.labs
-                            investments = player.investments
+                            labs = player.labs if player else []
+                            investments = player.investments if player else []
 
                         if player:
                             await websocket.send_json(
-                                {
-                                    **player.model_dump(),
-                                    "labs": [lab.model_dump() for lab in labs],
-                                    "investments": [investment.model_dump() for investment in investments],
-                                }
+                                GameMessageResponse(
+                                    action=GameAction.RETRIEVE_PLAYER_DATA,
+                                    payload=PlayerDataResponse(
+                                        id=player.id,
+                                        name=player.name,
+                                        funds=player.funds,
+                                        labs=[lab.model_dump() for lab in labs],
+                                        investments=[investment.model_dump() for investment in investments],
+                                    ).model_dump()
+                                ).model_dump()
                             )
                         else:
-                            await websocket.send_json({"error": "Player not found"})
+                            await websocket.send_json(
+                                GameMessageResponse(
+                                    action=GameAction.RETRIEVE_PLAYER_DATA,
+                                    payload={},
+                                    error="Player not found",
+                                ).model_dump()
+                            )
                     case "test":
                         await websocket.send_json({"response": "test"})
                     case _:

@@ -1,7 +1,9 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
     import { userStore } from "$lib/stores/userStore";
+    import { playerStore, type PlayerData } from "$lib/stores/playerStore";
     import { GameWebSocketClient } from "$lib/websocket";
+    import { GameActions, type GameMessageResponse } from "$lib/types/websocket";
 
     let client: GameWebSocketClient;
     let messages: string[] = [];
@@ -15,17 +17,17 @@
             client = new GameWebSocketClient();
             client.token = $userStore.access_token;
 
-            console.log("Connecting to WebSocket");
             await client.connectWebSocket();
 
-            client.onMessage((data) => {
+            client.onMessage((data: GameMessageResponse) => {
                 messages = [...messages, JSON.stringify(data)];
-                console.log("Received message:", data);
+
+                if (data.action === GameActions.RETRIEVE_PLAYER_DATA) {
+                    playerStore.set(data.payload as PlayerData);
+                }
             });
 
-            client.sendCommand("test", { message: "Hello from client!" });
-
-            client.sendCommand("retrieve-player-data");
+            client.sendCommand(GameActions.RETRIEVE_PLAYER_DATA);
 
         } catch (error) {
             console.error("WebSocket connection failed:", error);
@@ -34,11 +36,8 @@
     }
 
     onMount(async () => {
-        console.log("Mounting Play page");
         if ($userStore?.access_token) {
-            console.log("User token found, initializing WebSocket");
             await initializeWebSocket();
-            console.log("WebSocket initialized");
         }
     });
 
@@ -57,5 +56,9 @@
 <main class="container mx-auto p-4 max-w-md">
     {#if $userStore}
         <h1 class="text-3xl font-bold mb-6">Welcome to AI Venture</h1>
+        {#if $playerStore}
+            <p>Player name: {$playerStore.name}</p>
+            <p>Player funds: {$playerStore.funds}</p>
+        {/if}
     {/if}
 </main>
