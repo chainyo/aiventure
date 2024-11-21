@@ -1,45 +1,107 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import { goto } from "$app/navigation";
     import { ChevronDown, LoaderCircle } from "lucide-svelte";
-    
-    import { playerStore, type PlayerData } from "$lib/stores/playerStore";
+
+    import { GameWebSocketClient } from "$lib/websocket";
+    import { GameActions, type GameMessageResponse } from "$lib/types/websocket";
+    import { playerStore, type Player } from "$lib/stores/playerStore";
     import { userStore } from "$lib/stores/userStore";
-    import { Badge } from "$lib/components/ui/badge/index.js";
     import * as Avatar from "$lib/components/ui/avatar/index.js";
+    import { Badge } from "$lib/components/ui/badge/index.js";
+    import { Button } from "$lib/components/ui/button/index.js";
     import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
+    import { Label } from "$lib/components/ui/label/index.js";
+    import { Input } from "$lib/components/ui/input/index.js";
     import * as Sidebar from "$lib/components/ui/sidebar/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
 
 
+    let client: GameWebSocketClient;
     let { children } = $props();
     let isLoading = $state(true);
     let sidebarOpen = $state(false);
     let needsVerification = $state(false);
+    let messages: string[] = [];
+    let playerName: string = $state("");
+    let labName: string = $state("");
 
-    onMount(async () => {
-    try {
-        const initialized = await userStore.initializeFromLocalStorage();
 
-        if (!initialized) {
-            await goto('/login');
+    function handleCreatePlayer(event: SubmitEvent) {
+        event.preventDefault();
+        if (!playerName.trim()) return;
+
+        client.sendCommand(GameActions.CREATE_PLAYER, { name: playerName.trim() });
+    }
+
+    function handleCreateLab(event: SubmitEvent) {
+        event.preventDefault();
+        if (!labName.trim()) return;
+
+        client.sendCommand(GameActions.CREATE_LAB, { name: labName.trim() });
+    }
+
+    async function initializeWebSocket() {
+        if (!$userStore?.access_token) {
             return;
         }
 
-        // Fetch user data first
-        await userStore.fetchUser();
-        
-        // Initialize player data if needed
-        // if (!$playerStore) {
-        //     await playerStore.initialize();
-        // }
+        try {
+            client = new GameWebSocketClient();
+            client.token = $userStore.access_token;
 
-        sidebarOpen = true;
-    } catch (error) {
-        console.error('Failed to initialize:', error);
-        await goto('/login');
-    } finally {
-        isLoading = false;
+            await client.connectWebSocket();
+
+            client.onMessage((data: GameMessageResponse) => {
+                messages = [...messages, JSON.stringify(data)];
+
+                switch (data.action) {
+                    case GameActions.CREATE_PLAYER:
+                    case GameActions.RETRIEVE_PLAYER_DATA:
+                        const player = data.payload as Player;
+                        if (player && Object.keys(player).length > 0) {
+                            playerStore.set(player);
+                        }
+                        break;
+                }
+            });
+
+            client.sendCommand(GameActions.RETRIEVE_PLAYER_DATA);
+
+        } catch (error) {
+            throw new Error("WebSocket connection failed");
+        }
+    }
+
+    onDestroy(() => {
+        if (client) {
+            client.close();
+        }
+    });
+
+    onMount(async () => {
+        try {
+            const initialized = await userStore.initializeFromLocalStorage();
+
+            if (!initialized) {
+                throw new Error("User not initialized");
+            }
+
+            // Fetch user data first
+            await userStore.fetchUser();
+            
+            if ($userStore?.access_token) {
+                await initializeWebSocket();
+            } else {
+                throw new Error("User not authenticated");
+            }
+
+            sidebarOpen = true;
+        } catch (error) {
+            console.error('Failed to initialize:', error);
+            await goto('/login');
+        } finally {
+            isLoading = false;
         }
     });
 </script>
@@ -122,7 +184,26 @@
         {:else if needsVerification}
         <p>Please verify your email to continue. Check your inbox for a verification link.</p>
         {:else}
-            {@render children?.()}
+            {#if $userStore !== null}
+                {#if $playerStore === null}
+                    <form class="flex w-full max-w-sm flex-col gap-1.5" onsubmit={handleCreatePlayer}>
+                        <Label for="player-name">Player name</Label>
+                        <Input type="text" id="player-name" placeholder="Jane Doe" bind:value={playerName} />
+                        <p class="text-muted-foreground text-sm">Enter your player name.</p>
+                        <Button type="submit">Submit</Button>
+                    </form>
+                {/if}
+                {#if $playerStore && ($playerStore.labs?.length === 0 || !$playerStore.labs)}
+                    <form class="flex w-full max-w-sm flex-col gap-1.5" onsubmit={handleCreateLab}>
+                        <Label for="lab-name">Lab name</Label>
+                        <Input type="text" id="lab-name" placeholder="ClosedAI" bind:value={labName} />
+                        <p class="text-muted-foreground text-sm">Enter your lab name.</p>
+                        <Button type="submit">Submit</Button>
+                    </form>
+                {:else}
+                    {@render children?.()}
+                {/if}
+            {/if}
         {/if}
     </main>
 </Sidebar.Provider>

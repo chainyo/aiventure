@@ -2,6 +2,7 @@
 
 from .ai_model import AIModelCRUD, AIModelTypeCRUD
 from .base import BaseCRUD
+from .lab import LabCRUD
 from .location import LocationCRUD
 from .modifier import ModifierCRUD, ModifierTypeCRUD
 from .player import PlayerCRUD
@@ -14,6 +15,7 @@ __all__ = [
     "AIModelCRUD",
     "AIModelTypeCRUD",
     "BaseCRUD",
+    "LabCRUD",
     "LocationCRUD",
     "ModifierCRUD",
     "ModifierTypeCRUD",

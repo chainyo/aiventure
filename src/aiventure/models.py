@@ -857,3 +857,19 @@ class PlayerDataResponse(BaseModel):
     funds: float
     labs: list[LabRead]
     investments: list[LabRead]
+
+
+class LabDataResponse(BaseModel):
+    """Response model for retrieve-lab-data"""
+
+    id: str
+    name: str
+    location: LocationEnum
+    valuation: float
+    income: float
+    tech_tree_id: str
+    player_id: str
+    employees: list[Employee]
+    models: list[AIModel]
+    investors: list[Player]
+    player: Player

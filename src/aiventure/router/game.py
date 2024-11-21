@@ -1,6 +1,7 @@
 """Game router."""
 
 import logging
+import uuid
 from enum import Enum
 from typing import Any
 
@@ -8,10 +9,10 @@ from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from aiventure.db import PlayerCRUD
+from aiventure.db import LabCRUD, PlayerCRUD
 from aiventure.dependencies import get_async_session_from_websocket
 from aiventure.gcmanager import GameConnectionManager
-from aiventure.models import PlayerBase, PlayerDataResponse, User
+from aiventure.models import LabBase, LabDataResponse, PlayerBase, PlayerDataResponse, User
 
 
 logger = logging.getLogger("uvicorn.error")
@@ -23,6 +24,7 @@ router = APIRouter()
 class GameAction(str, Enum):
     """Game action."""
 
+    CREATE_LAB = "create-lab"
     CREATE_PLAYER = "create-player"
     RETRIEVE_PLAYER_DATA = "retrieve-player-data"
 
@@ -60,6 +62,45 @@ async def game_ws(
 
             try:
                 match message.action:
+                    case GameAction.CREATE_LAB:
+                        async with LabCRUD(session) as crud:
+                            lab = await crud.create(
+                                LabBase(
+                                    name=message.payload["name"],
+                                    location=message.payload["location"],
+                                    valuation=0,
+                                    income=0,
+                                    tech_tree_id=uuid.uuid4(),
+                                    player_id=user.id,
+                                )
+                            )
+                            if lab:
+                                await websocket.send_json(
+                                    GameMessageResponse(
+                                        action=GameAction.CREATE_LAB,
+                                        payload=LabDataResponse(
+                                            id=lab.id,
+                                            name=lab.name,
+                                            location=lab.location,
+                                            valuation=lab.valuation,
+                                            income=lab.income,
+                                            tech_tree_id=lab.tech_tree_id,
+                                            player_id=lab.player_id,
+                                            employees=[],
+                                            models=[],
+                                            investors=[],
+                                            player=lab.player,
+                                        ).model_dump(),
+                                    ).model_dump()
+                                )
+                            else:
+                                await websocket.send_json(
+                                    GameMessageResponse(
+                                        action=GameAction.CREATE_LAB,
+                                        payload={},
+                                        error="Failed to create lab",
+                                    ).model_dump()
+                                )
                     case GameAction.CREATE_PLAYER:
                         async with PlayerCRUD(session) as crud:
                             player = await crud.create(PlayerBase(name=message.payload["name"], user_id=user.id))
