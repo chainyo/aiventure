@@ -41,7 +41,7 @@ export interface Lab {
     employees: Employee[];
     models: AIModel[];
     investors: Player[];
-    player: Player;
+    player: Player | null;
 }
 
 function createPlayerStore() {

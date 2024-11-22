@@ -70,7 +70,7 @@ async def game_ws(
                                     location=message.payload["location"],
                                     valuation=0,
                                     income=0,
-                                    tech_tree_id=uuid.uuid4(),
+                                    tech_tree_id=str(uuid.uuid4()),
                                     player_id=user.id,
                                 )
                             )

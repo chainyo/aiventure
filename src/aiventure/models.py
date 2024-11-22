@@ -27,7 +27,7 @@ class LocationEnum(str, enum.Enum):
 
     US = "us"
     EU = "eu"
-    ASIA = "asia"
+    APAC = "apac"
 
     @property
     def item(self) -> "LocationBase":
@@ -209,6 +209,94 @@ AI_MODEL_TYPE_MAPPING: dict[str, AIModelTypeBase] = {
 }
 
 
+class GlobalGameState(BaseModel):
+    """Global game state."""
+
+    n_connected_players: int
+
+
+class Health(BaseModel):
+    """Health model for the API."""
+
+    status: str
+
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"status": "healthy"}},
+    )
+
+
+class PlayerBase(UUIDModel):
+    """Player model."""
+
+    name: str
+    funds: float = Field(default=100000.0)
+    user_id: str = Field(foreign_key="users.id", sa_column_kwargs={"unique": True})
+
+    model_config = SQLModelConfig(
+        json_schema_extra={
+            "example": {
+                "id": "123e4567-e89b-12d3-a456-426614174000",
+                "name": "John Doe",
+                "funds": 100000,
+                "user_id": "123e4567-e89b-12d3-a456-426614174001",
+            }
+        }
+    )
+
+
+class Player(PlayerBase, table=True):
+    """Player model."""
+
+    __tablename__ = "players"
+
+    labs: list["Lab"] = Relationship(back_populates="player", sa_relationship_kwargs={"lazy": "selectin"})
+    investments: list["Lab"] = Relationship(
+        back_populates="investors",
+        link_model=PlayerLabInvestmentLink,
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
+
+
+class LabBase(UUIDModel):
+    """Lab model."""
+
+    name: str
+    location: LocationEnum = Field(sa_column=Column(Enum(LocationEnum)))
+    valuation: float
+    income: float
+    tech_tree_id: str
+    player_id: str = Field(foreign_key="players.id")
+
+    model_config = SQLModelConfig(
+        json_schema_extra={
+            "example": {
+                "id": "123e4567-e89b-12d3-a456-426614174000",
+                "name": "Lab Zero",
+                "location": "us",
+                "valuation": 1000000,
+                "income": 100000,
+                "tech_tree_id": "123e4567-e89b-12d3-a456-426614174001",
+                "player_id": "123e4567-e89b-12d3-a456-426614174002",
+            }
+        }
+    )
+
+
+class Lab(LabBase, table=True):
+    """Table for labs."""
+
+    __tablename__ = "labs"
+
+    employees: list["Employee"] = Relationship(back_populates="lab", sa_relationship_kwargs={"lazy": "selectin"})
+    models: list["AIModel"] = Relationship(back_populates="lab", sa_relationship_kwargs={"lazy": "selectin"})
+    investors: list["Player"] = Relationship(
+        back_populates="investments",
+        link_model=PlayerLabInvestmentLink,
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
+    player: Player = Relationship(back_populates="labs", sa_relationship_kwargs={"lazy": "selectin"})
+
+
 class AIModelBase(UUIDModel):
     """AI model base model."""
 
@@ -234,7 +322,7 @@ class AIModel(AIModelBase, table=True):
 
     __tablename__ = "ai_models"
 
-    # lab: Lab = Relationship(back_populates="models", sa_relationship_kwargs={"lazy": "selectin"})
+    lab: Lab = Relationship(back_populates="models", sa_relationship_kwargs={"lazy": "selectin"})
 
 
 class EmployeeBase(UUIDModel):
@@ -276,63 +364,7 @@ class Employee(EmployeeBase, table=True):
     #     link_model=EmployeeModifierLink,
     #     sa_relationship_kwargs={"lazy": "selectin"},
     # )
-    # lab: Lab | None = Relationship(back_populates="employees", sa_relationship_kwargs={"lazy": "selectin"})
-
-
-class GlobalGameState(BaseModel):
-    """Global game state."""
-
-    n_connected_players: int
-
-
-class Health(BaseModel):
-    """Health model for the API."""
-
-    status: str
-
-    model_config = ConfigDict(
-        json_schema_extra={"example": {"status": "healthy"}},
-    )
-
-
-class LabBase(UUIDModel):
-    """Lab model."""
-
-    name: str
-    location: LocationEnum = Field(sa_column=Column(Enum(LocationEnum)))
-    valuation: float
-    income: float
-    tech_tree_id: str
-    player_id: str = Field(foreign_key="players.id")
-
-    model_config = SQLModelConfig(
-        json_schema_extra={
-            "example": {
-                "id": "123e4567-e89b-12d3-a456-426614174000",
-                "name": "Lab Zero",
-                "location": "us",
-                "valuation": 1000000,
-                "income": 100000,
-                "tech_tree_id": "123e4567-e89b-12d3-a456-426614174001",
-                "player_id": "123e4567-e89b-12d3-a456-426614174002",
-            }
-        }
-    )
-
-
-class Lab(LabBase, table=True):
-    """Table for labs."""
-
-    __tablename__ = "labs"
-
-    # employees: list[Employee] = Relationship(back_populates="lab", sa_relationship_kwargs={"lazy": "selectin"})
-    # models: list[AIModel] = Relationship(back_populates="lab", sa_relationship_kwargs={"lazy": "selectin"})
-    investors: list["Player"] = Relationship(
-        back_populates="investments",
-        link_model=PlayerLabInvestmentLink,
-        sa_relationship_kwargs={"lazy": "selectin"},
-    )
-    player: "Player" = Relationship(back_populates="labs", sa_relationship_kwargs={"lazy": "selectin"})
+    lab: Lab | None = Relationship(back_populates="employees", sa_relationship_kwargs={"lazy": "selectin"})
 
 
 class LocationBase(SQLModel):
@@ -364,7 +396,7 @@ class Location(LocationBase, table=True):
 LOCATION_MAPPING: dict[str, LocationBase] = {
     "us": LocationBase(id=1, name="US", description="The United States of America", modifier_id=1),
     "eu": LocationBase(id=2, name="EU", description="The European Union", modifier_id=2),
-    "asia": LocationBase(id=3, name="Asia", description="Asia", modifier_id=3),
+    "apac": LocationBase(id=3, name="APAC", description="Asia Pacific", modifier_id=3),
 }
 
 
@@ -425,38 +457,6 @@ class Modifier(ModifierBase, table=True):
 MODIFIER_MAPPING: dict[str, ModifierBase] = {
     # TODO: Add modifiers
 }
-
-
-class PlayerBase(UUIDModel):
-    """Player model."""
-
-    name: str
-    funds: float = Field(default=100000.0)
-    user_id: str = Field(foreign_key="users.id", sa_column_kwargs={"unique": True})
-
-    model_config = SQLModelConfig(
-        json_schema_extra={
-            "example": {
-                "id": "123e4567-e89b-12d3-a456-426614174000",
-                "name": "John Doe",
-                "funds": 100000,
-                "user_id": "123e4567-e89b-12d3-a456-426614174001",
-            }
-        }
-    )
-
-
-class Player(PlayerBase, table=True):
-    """Player model."""
-
-    __tablename__ = "players"
-
-    labs: list["Lab"] = Relationship(back_populates="player", sa_relationship_kwargs={"lazy": "selectin"})
-    investments: list["Lab"] = Relationship(
-        back_populates="investors",
-        link_model=PlayerLabInvestmentLink,
-        sa_relationship_kwargs={"lazy": "selectin"},
-    )
 
 
 class QualityBase(SQLModel):
@@ -872,4 +872,4 @@ class LabDataResponse(BaseModel):
     employees: list[Employee]
     models: list[AIModel]
     investors: list[Player]
-    player: Player
+    player: Player | None

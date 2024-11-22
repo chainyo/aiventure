@@ -1,5 +1,5 @@
 <script lang="ts">
-
+    import { playerStore } from "$lib/stores/playerStore";
 </script>
 
 <svelte:head>
@@ -8,5 +8,7 @@
 </svelte:head>
 
 <main class="container mx-auto p-4 max-w-md">
-    <h1>HERE WE PLAY THE GAME</h1>
+    <pre class="whitespace-pre-wrap bg-secondary p-4 rounded-lg">
+        {JSON.stringify($playerStore, null, 2)}
+    </pre>
 </main>

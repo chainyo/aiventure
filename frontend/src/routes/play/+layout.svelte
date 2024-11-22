@@ -5,11 +5,12 @@
 
     import { GameWebSocketClient } from "$lib/websocket";
     import { GameActions, type GameMessageResponse } from "$lib/types/websocket";
-    import { playerStore, type Player } from "$lib/stores/playerStore";
+    import { playerStore, type Player, type Lab } from "$lib/stores/playerStore";
     import { userStore } from "$lib/stores/userStore";
     import * as Avatar from "$lib/components/ui/avatar/index.js";
     import { Badge } from "$lib/components/ui/badge/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
+    import * as Card from "$lib/components/ui/card/index.js";
     import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
     import { Label } from "$lib/components/ui/label/index.js";
     import { Input } from "$lib/components/ui/input/index.js";
@@ -25,6 +26,7 @@
     let messages: string[] = [];
     let playerName: string = $state("");
     let labName: string = $state("");
+    let location: string = $state("");
 
 
     function handleCreatePlayer(event: SubmitEvent) {
@@ -37,8 +39,8 @@
     function handleCreateLab(event: SubmitEvent) {
         event.preventDefault();
         if (!labName.trim()) return;
-
-        client.sendCommand(GameActions.CREATE_LAB, { name: labName.trim() });
+        console.log({ name: labName.trim(), location });
+        client.sendCommand(GameActions.CREATE_LAB, { name: labName.trim(), location });
     }
 
     async function initializeWebSocket() {
@@ -56,6 +58,18 @@
                 messages = [...messages, JSON.stringify(data)];
 
                 switch (data.action) {
+                    case GameActions.CREATE_LAB:
+                        const lab = data.payload as Lab;
+                        if (lab && Object.keys(lab).length > 0 && $playerStore) {
+                            const updatedPlayer: Player = {
+                                ...$playerStore,
+                                labs: [...($playerStore.labs || []), lab]
+                            };
+                            playerStore.set(updatedPlayer);
+                            location = '';
+                            labName = '';
+                        }
+                        break;
                     case GameActions.CREATE_PLAYER:
                     case GameActions.RETRIEVE_PLAYER_DATA:
                         const player = data.payload as Player;
@@ -174,7 +188,7 @@
             </Sidebar.Menu>
         </Sidebar.Footer>
     </Sidebar.Root>
-    <main class="container mx-auto p-4 max-w-md">
+    <main class="container mx-auto p-4 max-w-2xl">
         <Sidebar.Trigger class="absolute top-0 right-0"/>
         {#if isLoading}
         <div class="flex items-center justify-center h-screen mx-auto">
@@ -192,13 +206,63 @@
                         <p class="text-muted-foreground text-sm">Enter your player name.</p>
                         <Button type="submit">Submit</Button>
                     </form>
-                {/if}
-                {#if $playerStore && ($playerStore.labs?.length === 0 || !$playerStore.labs)}
-                    <form class="flex w-full max-w-sm flex-col gap-1.5" onsubmit={handleCreateLab}>
+                {:else if $playerStore && ($playerStore.labs?.length === 0 || !$playerStore.labs)}
+                    <form class="flex w-full max-w-lg flex-col gap-1.5" onsubmit={handleCreateLab}>
                         <Label for="lab-name">Lab name</Label>
                         <Input type="text" id="lab-name" placeholder="ClosedAI" bind:value={labName} />
                         <p class="text-muted-foreground text-sm">Enter your lab name.</p>
-                        <Button type="submit">Submit</Button>
+                        
+                        <div class="grid grid-cols-3 gap-4 my-4">
+                            <Card.Root 
+                                class="cursor-pointer {location === 'us' ? 'border-2 border-green-600' : ''}" 
+                                onclick={() => location = "us"}
+                            >
+                                <Card.Header>
+                                    <Card.Title>US 🌎</Card.Title>
+                                    <Card.Description>Silicon Valley Hub</Card.Description>
+                                </Card.Header>
+                                <Card.Content>
+                                    <ul class="list-disc list-inside">
+                                        <li class="text-sm">+5% Valuation</li>
+                                        <li class="text-sm">+5% Income</li>
+                                    </ul>
+                                </Card.Content>
+                            </Card.Root>
+
+                            <Card.Root 
+                                class="cursor-pointer {location === 'eu' ? 'border-2 border-green-600' : ''}" 
+                                onclick={() => location = "eu"}
+                            >
+                                <Card.Header>
+                                    <Card.Title>EU 🌍</Card.Title>
+                                    <Card.Description>Research Focus</Card.Description>
+                                </Card.Header>
+                                <Card.Content>
+                                    <ul class="list-disc list-inside">
+                                        <li class="text-sm">+15% Research Speed</li>
+                                        <li class="text-sm">-5% Valuation</li>
+                                    </ul>
+                                </Card.Content>
+                            </Card.Root>
+
+                            <Card.Root 
+                                class="cursor-pointer {location === 'apac' ? 'border-2 border-green-600' : ''}" 
+                                onclick={() => location = "apac"}
+                            >
+                                <Card.Header>
+                                    <Card.Title>APAC 🌏</Card.Title>
+                                    <Card.Description>Balanced Growth</Card.Description>
+                                </Card.Header>
+                                <Card.Content>
+                                    <ul class="list-disc list-inside">
+                                        <li class="text-sm">+5% Research Speed</li>
+                                        <li class="text-sm">+5% Income</li>
+                                    </ul>
+                                </Card.Content>
+                            </Card.Root>
+                        </div>
+
+                        <Button type="submit" disabled={!location}>Submit</Button>
                     </form>
                 {:else}
                     {@render children?.()}

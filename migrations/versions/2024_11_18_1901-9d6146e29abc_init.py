@@ -129,7 +129,7 @@ def upgrade() -> None:
         "labs",
         sa.Column("id", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
         sa.Column("name", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-        sa.Column("location", sa.Enum("US", "EU", "ASIA", name="locationenum"), nullable=True),
+        sa.Column("location", sa.Enum("US", "EU", "APAC", name="locationenum"), nullable=True),
         sa.Column("valuation", sa.Float(), nullable=False),
         sa.Column("income", sa.Float(), nullable=False),
         sa.Column("tech_tree_id", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
