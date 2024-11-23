@@ -133,7 +133,6 @@ async def game_ws(
                                 player = await crud.read_player_data_by_user_id(user.id)
                             else:
                                 player = await crud.read_player_data_by_id(player.id)
-
                         if player:
                             await websocket.send_json(
                                 GameMessageResponse(

@@ -855,8 +855,8 @@ class PlayerDataResponse(BaseModel):
     id: str
     name: str
     funds: float
-    labs: list[LabRead]
-    investments: list[LabRead]
+    labs: list[Lab]
+    investments: list[Lab]
 
 
 class LabDataResponse(BaseModel):

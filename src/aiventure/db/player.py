@@ -52,10 +52,8 @@ class PlayerCRUD(BaseCRUD):
             select(Player)
             .where(col(Player.id) == player_id)
             .options(
-                selectinload(Player.labs).selectinload(Lab.investors),
-                selectinload(Player.labs).selectinload(Lab.employees),
-                selectinload(Player.labs).selectinload(Lab.models),
-                selectinload(Player.labs).selectinload(Lab.player),
+                selectinload(Player.labs),
+                selectinload(Player.investments),
             )
         )
         return player.scalar_one_or_none()
@@ -66,10 +64,8 @@ class PlayerCRUD(BaseCRUD):
             select(Player)
             .where(col(Player.user_id) == user_id)
             .options(
-                selectinload(Player.labs).selectinload(Lab.investors),
-                selectinload(Player.labs).selectinload(Lab.employees),
-                selectinload(Player.labs).selectinload(Lab.models),
-                selectinload(Player.labs).selectinload(Lab.player),
+                selectinload(Player.labs),
+                selectinload(Player.investments),
             )
         )
         return player.scalar_one_or_none()
