@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from aiventure.db import LabCRUD, PlayerCRUD
 from aiventure.dependencies import get_async_session_from_websocket
 from aiventure.gcmanager import GameConnectionManager
-from aiventure.models import LabBase, LabDataResponse, PlayerBase, PlayerDataResponse, User
+from aiventure.models import LabBase, LabDataResponse, Player, PlayerBase, PlayerDataResponse, User
 
 
 logger = logging.getLogger("uvicorn.error")
@@ -56,6 +56,8 @@ async def game_ws(
         if not user:
             return
 
+        player: Player | None = None
+
         while True:
             data = await websocket.receive_json()
             message = GameMessage(**data)
@@ -71,7 +73,7 @@ async def game_ws(
                                     valuation=0,
                                     income=0,
                                     tech_tree_id=str(uuid.uuid4()),
-                                    player_id=user.id,
+                                    player_id=player.id,
                                 )
                             )
                             if lab:
@@ -127,9 +129,10 @@ async def game_ws(
                                 )
                     case GameAction.RETRIEVE_PLAYER_DATA:
                         async with PlayerCRUD(session) as crud:
-                            player = await crud.get_by_user_id(user.id)
-                            labs = player.labs if player else []
-                            investments = player.investments if player else []
+                            if not player:
+                                player = await crud.read_player_data_by_user_id(user.id)
+                            else:
+                                player = await crud.read_player_data_by_id(player.id)
 
                         if player:
                             await websocket.send_json(
@@ -139,8 +142,8 @@ async def game_ws(
                                         id=player.id,
                                         name=player.name,
                                         funds=player.funds,
-                                        labs=[lab.model_dump() for lab in labs],
-                                        investments=[investment.model_dump() for investment in investments],
+                                        labs=player.labs,
+                                        investments=player.investments,
                                     ).model_dump()
                                 ).model_dump()
                             )

@@ -153,6 +153,7 @@
         </Sidebar.Header>
         <Sidebar.Content>
             <Sidebar.Group />
+                <Button variant="outline" onclick={() => { userStore.clearUser(); goto('/login'); }}>Logout</Button>
             <Sidebar.Group />
         </Sidebar.Content>
         <Sidebar.Footer class="pb-8">
@@ -176,7 +177,7 @@
                     <Sidebar.MenuItem>
                         <Skeleton class="size-8 rounded-full" />
                     </Sidebar.MenuItem>
-                    <div class="flex flex-col">
+                    <div class="flex flex-col gap-2">
                         <Sidebar.MenuItem>
                             <Skeleton class="h-4 w-[125px]" />
                         </Sidebar.MenuItem>

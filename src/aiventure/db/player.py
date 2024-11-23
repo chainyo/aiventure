@@ -1,9 +1,10 @@
 """Database operations for the player table."""
 
+from sqlalchemy.orm import selectinload
 from sqlmodel import col, select
 
 from aiventure.db.base import BaseCRUD
-from aiventure.models import Player, PlayerBase
+from aiventure.models import Lab, Player, PlayerBase
 
 
 class PlayerCRUD(BaseCRUD):
@@ -44,3 +45,31 @@ class PlayerCRUD(BaseCRUD):
         await self.session.refresh(_player)
 
         return _player
+
+    async def read_player_data_by_id(self, player_id: str) -> Player | None:
+        """Read player data by id."""
+        player = await self.session.execute(
+            select(Player)
+            .where(col(Player.id) == player_id)
+            .options(
+                selectinload(Player.labs).selectinload(Lab.investors),
+                selectinload(Player.labs).selectinload(Lab.employees),
+                selectinload(Player.labs).selectinload(Lab.models),
+                selectinload(Player.labs).selectinload(Lab.player),
+            )
+        )
+        return player.scalar_one_or_none()
+
+    async def read_player_data_by_user_id(self, user_id: str) -> Player | None:
+        """Read player data by user id."""
+        player = await self.session.execute(
+            select(Player)
+            .where(col(Player.user_id) == user_id)
+            .options(
+                selectinload(Player.labs).selectinload(Lab.investors),
+                selectinload(Player.labs).selectinload(Lab.employees),
+                selectinload(Player.labs).selectinload(Lab.models),
+                selectinload(Player.labs).selectinload(Lab.player),
+            )
+        )
+        return player.scalar_one_or_none()

@@ -7,7 +7,7 @@
     <meta name="description" content="Play AI Venture" />
 </svelte:head>
 
-<main class="container mx-auto p-4 max-w-md">
+<main class="container mx-auto p-4">
     <pre class="whitespace-pre-wrap bg-secondary p-4 rounded-lg">
         {JSON.stringify($playerStore, null, 2)}
     </pre>
