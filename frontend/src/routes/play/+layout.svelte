@@ -27,7 +27,6 @@
     let needsVerification = $state(false);
     let avatarImages: string[] = $state([]);
     let selectedAvatar: string = $state("");
-    let avatarLoadingPromise: Promise<void> | null = $state(null);
     let playerName: string = $state("");
     let labName: string = $state("");
     let location: string = $state("");
@@ -122,6 +121,10 @@
             }
 
             gameContext.sidebarOpen = true;
+            // Check if playerStore is not null else load avatars
+            if (!$playerStore) {
+                await loadAvatarImages();
+            }
         } catch (error) {
             console.error('Failed to initialize:', error);
             await goto('/login');
@@ -224,31 +227,25 @@
                         <Input type="text" id="player-name" placeholder="Jane Doe" bind:value={playerName} />
                         <p class="text-muted-foreground text-sm">Enter your player name.</p>
                         <ScrollArea class="h-[400px] w-full rounded-md border p-4">
-                            {#if !avatarLoadingPromise}
-                                <Button variant="outline" onclick={() => avatarLoadingPromise = loadAvatarImages()} class="w-full">Load Avatars</Button>
+                            {#if avatarImages.length > 0}
+                                <div class="grid grid-cols-4 gap-2">
+                                    {#each avatarImages as imageUrl}
+                                    <Avatar.Root class="relative w-12 h-12 cursor-pointer {selectedAvatar === imageUrl ? 'border-2 border-green-600' : ''}" onclick={() => selectedAvatar = imageUrl}>
+                                        <Avatar.Image src={imageUrl} alt="avatar" />
+                                        <Avatar.Fallback><Skeleton class="h-[20px] w-[20px] rounded-full" /></Avatar.Fallback>
+                                    </Avatar.Root>
+                                    {/each}
+                                </div>
                             {:else}
-                                {#await avatarLoadingPromise}
-                                    <Skeleton class="h-[20px] w-[20px] rounded-full" />
-                                {:then}
-                                    <div class="grid grid-cols-4 gap-2">
-                                        {#each avatarImages as imageUrl}
-                                        <Avatar.Root class="relative w-12 h-12 cursor-pointer {selectedAvatar === imageUrl ? 'border-2 border-green-600' : ''}" onclick={() => selectedAvatar = imageUrl}>
-                                            <Avatar.Image src={imageUrl} alt="avatar" />
-                                            <Avatar.Fallback><Skeleton class="h-[20px] w-[20px] rounded-full" /></Avatar.Fallback>
-                                        </Avatar.Root>
-                                        {/each}
-                                    </div>
-                                {:catch error}
-                                    <div class="text-center">
-                                        <p class="text-destructive mb-2">Failed to load avatars: {error.message}</p>
-                                        <Button 
-                                            variant="outline" 
-                                            onclick={() => avatarLoadingPromise = loadAvatarImages()}
-                                        >
-                                            Retry
-                                        </Button>
-                                    </div>
-                                {/await}
+                                <div class="text-center">
+                                    <p class="text-destructive mb-2">Failed to load avatars</p>
+                                    <Button 
+                                        variant="outline" 
+                                        onclick={() => loadAvatarImages()}
+                                    >
+                                        Retry
+                                    </Button>
+                                </div>
                             {/if}
                         </ScrollArea>
                         <Button type="submit">Submit</Button>

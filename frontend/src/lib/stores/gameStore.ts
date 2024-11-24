@@ -7,7 +7,7 @@ export interface Player {
     funds: number;
     user_id: string;
     labs: Lab[];
-    investments: Lab[];
+    investments: Investment[];
 }
 
 export interface Employee {
@@ -31,6 +31,16 @@ export interface AIModel {
     lab: Lab;
 }
 
+export interface Investor {
+    player: Player;
+    part: number;
+}
+
+export interface Investment {
+    lab: Lab;
+    part: number;
+}
+
 export interface Lab {
     id: string;
     name: string;
@@ -41,7 +51,7 @@ export interface Lab {
     player_id: string;
     employees: Employee[];
     models: AIModel[];
-    investors: Player[];
+    investors: Investor[];
     player: Player | null;
 }
 

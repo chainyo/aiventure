@@ -173,7 +173,10 @@ class PlayerLabInvestmentLink(SQLModel, table=True):
 
     player_id: str | None = Field(default=None, foreign_key="players.id", primary_key=True)
     lab_id: str | None = Field(default=None, foreign_key="labs.id", primary_key=True)
-    part: float = Field(default=0.0, ge=0.0, le=1.0, description="The part of the lab that the player owns.")
+    part: float = Field(default=1.0, ge=0.0, le=1.0, description="The part of the lab that the player owns.")
+
+    player: "Player" = Relationship(back_populates="investments", sa_relationship_kwargs={"lazy": "selectin"})
+    lab: "Lab" = Relationship(back_populates="investors", sa_relationship_kwargs={"lazy": "selectin"})
 
     model_config = SQLModelConfig(
         json_schema_extra={
@@ -251,9 +254,8 @@ class Player(PlayerBase, table=True):
     __tablename__ = "players"
 
     labs: list["Lab"] = Relationship(back_populates="player", sa_relationship_kwargs={"lazy": "selectin"})
-    investments: list["Lab"] = Relationship(
-        back_populates="investors",
-        link_model=PlayerLabInvestmentLink,
+    investments: list[PlayerLabInvestmentLink] = Relationship(
+        back_populates="player",
         sa_relationship_kwargs={"lazy": "selectin"},
     )
 
@@ -290,9 +292,8 @@ class Lab(LabBase, table=True):
 
     employees: list["Employee"] = Relationship(back_populates="lab", sa_relationship_kwargs={"lazy": "selectin"})
     models: list["AIModel"] = Relationship(back_populates="lab", sa_relationship_kwargs={"lazy": "selectin"})
-    investors: list["Player"] = Relationship(
-        back_populates="investments",
-        link_model=PlayerLabInvestmentLink,
+    investors: list[PlayerLabInvestmentLink] = Relationship(
+        back_populates="lab",
         sa_relationship_kwargs={"lazy": "selectin"},
     )
     player: Player = Relationship(back_populates="labs", sa_relationship_kwargs={"lazy": "selectin"})
@@ -837,17 +838,18 @@ class Version(BaseModel):
     )
 
 
-class LabRead(BaseModel):
-    """Lab read model"""
+class Investor(BaseModel):
+    """Investor model"""
 
-    id: str
-    name: str
-    location: LocationEnum
-    valuation: float
-    income: float
-    tech_tree_id: str
-    player_id: str
-    investors: list[Player]
+    player: Player
+    part: float
+
+
+class Investment(BaseModel):
+    """Investment model"""
+
+    lab: Lab
+    part: float
 
 
 class PlayerDataResponse(BaseModel):
@@ -858,7 +860,7 @@ class PlayerDataResponse(BaseModel):
     avatar: str
     funds: float
     labs: list[Lab]
-    investments: list[Lab]
+    investments: list[Investment]
 
 
 class LabDataResponse(BaseModel):
@@ -873,5 +875,5 @@ class LabDataResponse(BaseModel):
     player_id: str
     employees: list[Employee]
     models: list[AIModel]
-    investors: list[Player]
+    investors: list[Investor]
     player: Player | None

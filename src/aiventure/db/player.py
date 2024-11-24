@@ -48,24 +48,26 @@ class PlayerCRUD(BaseCRUD):
 
     async def read_player_data_by_id(self, player_id: str) -> Player | None:
         """Read player data by id."""
-        player = await self.session.execute(
+        query = (
             select(Player)
             .where(col(Player.id) == player_id)
             .options(
                 selectinload(Player.labs),
-                selectinload(Player.investments),
+                selectinload(Player.investments)
             )
         )
-        return player.scalar_one_or_none()
+        result = await self.session.execute(query)
+        return result.scalar_one_or_none()
 
     async def read_player_data_by_user_id(self, user_id: str) -> Player | None:
         """Read player data by user id."""
-        player = await self.session.execute(
+        query = (
             select(Player)
             .where(col(Player.user_id) == user_id)
             .options(
                 selectinload(Player.labs),
-                selectinload(Player.investments),
+                selectinload(Player.investments)
             )
         )
-        return player.scalar_one_or_none()
+        result = await self.session.execute(query)
+        return result.scalar_one_or_none()

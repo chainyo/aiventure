@@ -149,7 +149,6 @@ export class GameWebSocketClient {
     private handlePlayerData(player: Player): void {
         if (player && Object.keys(player).length > 0) {
             playerStore.set(player);
-            console.log(player);
             if (player.labs?.length > 0 && !this.gameContext.activeLab) {
                 this.sendCommand(GameActions.RETRIEVE_LAB, { id: player.labs[0].id });
             }

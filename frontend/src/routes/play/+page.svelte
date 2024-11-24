@@ -9,6 +9,7 @@
     import { Badge } from "$lib/components/ui/badge/index.js";
     import * as Card from "$lib/components/ui/card/index.js";
     import * as Dialog from "$lib/components/ui/dialog/index.js";
+    import * as HoverCard from "$lib/components/ui/hover-card/index.js";
     import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
 
     let gameContext = getContext<GameContext>(GAME_CONTEXT_KEY);
@@ -110,10 +111,26 @@
                 <Card.Content>
                     <ScrollArea class="h-[200px] w-full p-4">
                         {#each $labStore?.investors ?? [] as investor}
-                            <Avatar.Root class="relative w-6 h-6">
-                                <Avatar.Image src={investor.avatar} alt="avatar" />
-                                <Avatar.Fallback>{investor.name.slice(0, 2).toUpperCase()}</Avatar.Fallback>
-                            </Avatar.Root>
+                            <HoverCard.Root>
+                                <HoverCard.Trigger>
+                                    <Avatar.Root class="relative w-8 h-8">
+                                        <Avatar.Image src={investor.player.avatar} alt="avatar" />
+                                        <Avatar.Fallback>{investor.player.name.slice(0, 2).toUpperCase()}</Avatar.Fallback>
+                                    </Avatar.Root>
+                                </HoverCard.Trigger>
+                                <HoverCard.Content class="w-full items-center">
+                                    <div class="flex flex-row gap-2">
+                                        <Avatar.Root class="relative w-8 h-8">
+                                            <Avatar.Image src={investor.player.avatar} alt="avatar" />
+                                            <Avatar.Fallback>{investor.player.name.slice(0, 2).toUpperCase()}</Avatar.Fallback>
+                                        </Avatar.Root>
+                                        <div class="flex flex-col">
+                                            <p class="text-lg">{investor.player.name}</p>
+                                            <p class="text-sm text-gray-500">{investor.part * 100}%</p>
+                                        </div>
+                                    </div>
+                                </HoverCard.Content>
+                            </HoverCard.Root>
                         {/each}
                     </ScrollArea>
                 </Card.Content>

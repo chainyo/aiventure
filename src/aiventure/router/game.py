@@ -12,7 +12,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from aiventure.db import LabCRUD, PlayerCRUD
 from aiventure.dependencies import get_async_session_from_websocket
 from aiventure.gcmanager import GameConnectionManager
-from aiventure.models import LabBase, LabDataResponse, Player, PlayerBase, PlayerDataResponse, User
+from aiventure.models import (
+    Investment,
+    Investor,
+    LabBase,
+    LabDataResponse,
+    Player,
+    PlayerBase,
+    PlayerDataResponse,
+    User,
+)
 
 
 logger = logging.getLogger("uvicorn.error")
@@ -92,7 +101,13 @@ async def game_ws(
                                             player_id=lab.player_id,
                                             employees=[],
                                             models=[],
-                                            investors=[],
+                                            investors=[
+                                                Investor(
+                                                    player=investor.player,
+                                                    part=investor.part,
+                                                )
+                                                for investor in lab.investors
+                                            ],
                                             player=lab.player,
                                         ).model_dump(),
                                     ).model_dump()
@@ -121,9 +136,16 @@ async def game_ws(
                                         payload=PlayerDataResponse(
                                             id=player.id,
                                             name=player.name,
+                                            avatar=player.avatar,
                                             funds=player.funds,
                                             labs=[],
-                                            investments=[],
+                                            investments=[
+                                                Investment(
+                                                    lab=investment.lab,
+                                                    part=investment.part,
+                                                )
+                                                for investment in player.investments
+                                            ],
                                         ).model_dump(),
                                     ).model_dump()
                                 )
@@ -153,7 +175,13 @@ async def game_ws(
                                             player_id=lab.player_id,
                                             employees=lab.employees,
                                             models=lab.models,
-                                            investors=lab.investors,
+                                            investors=[
+                                                Investor(
+                                                    player=investor.player,
+                                                    part=investor.part,
+                                                )
+                                                for investor in lab.investors
+                                            ],
                                             player=lab.player,
                                         ).model_dump(),
                                     ).model_dump()
@@ -182,7 +210,13 @@ async def game_ws(
                                         avatar=player.avatar,
                                         funds=player.funds,
                                         labs=player.labs,
-                                        investments=player.investments,
+                                        investments=[
+                                            Investment(
+                                                lab=investment.lab,
+                                                part=investment.part,
+                                            )
+                                            for investment in player.investments
+                                        ],
                                     ).model_dump()
                                 ).model_dump()
                             )
