@@ -118,9 +118,9 @@
     <Sidebar.Root>
         <Sidebar.Header>
             <Sidebar.Menu>
-                <Sidebar.MenuItem>
+                <Sidebar.MenuItem class="w-full flex justify-center">
                     <Select.Root type="single" name="activeLab" bind:value={gameContext.activeLab}>
-                        <Select.Trigger class="w-[180px]">{triggerActiveLab}</Select.Trigger>
+                        <Select.Trigger class="w-full max-w-[calc(100%-1rem)]">{triggerActiveLab}</Select.Trigger>
                         <Select.Content>
                           <Select.Group>
                             <Select.GroupHeading>🧪 Your Labs</Select.GroupHeading>
