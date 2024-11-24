@@ -8,7 +8,7 @@
     import { GameWebSocketClient } from "$lib/websocket";
     import { GAME_CONTEXT_KEY, type GameContext } from "$lib/types/context";
     import { GameActions } from "$lib/types/websocket";
-    import { playerStore } from "$lib/stores/playerStore";
+    import { playerStore } from "$lib/stores/gameStore";
     import { userStore } from "$lib/stores/userStore";
     import * as Avatar from "$lib/components/ui/avatar/index.js";
     import { Badge } from "$lib/components/ui/badge/index.js";
@@ -74,7 +74,6 @@
             connectionEstablished = true;
 
             gameContext.client.sendCommand(GameActions.RETRIEVE_PLAYER_DATA);
-
         } catch (error) {
             throw new Error("WebSocket connection failed");
         }
@@ -190,7 +189,7 @@
             </Sidebar.Menu>
         </Sidebar.Footer>
     </Sidebar.Root>
-    <main class="container mx-auto p-4 max-w-2xl">
+    <main class="container mx-auto p-4 w-full">
         <Sidebar.Trigger class="absolute top-0 right-0"/>
         {#if isLoading}
         <div class="flex items-center justify-center h-screen mx-auto">

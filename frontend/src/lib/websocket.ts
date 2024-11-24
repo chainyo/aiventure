@@ -4,8 +4,7 @@
 
 import type { GameAction, GameMessage, GameMessageResponse } from "$lib/types/websocket";
 import type { GameContext } from "$lib/types/context";
-import type { Player, Lab } from "$lib/stores/playerStore";
-import { playerStore } from "$lib/stores/playerStore";
+import { labStore, playerStore, type Lab, type Player } from "$lib/stores/gameStore";
 import { GameActions } from "$lib/types/websocket";
 
 
@@ -81,6 +80,9 @@ export class GameWebSocketClient {
                     case GameActions.CREATE_LAB:
                         this.handleCreateLab(data.payload as Lab);
                         break;
+                    case GameActions.RETRIEVE_LAB:
+                        this.handleRetrieveLab(data.payload as Lab);
+                        break;
                     case GameActions.CREATE_PLAYER:
                     case GameActions.RETRIEVE_PLAYER_DATA:
                         this.handlePlayerData(data.payload as Player);
@@ -139,7 +141,7 @@ export class GameWebSocketClient {
             });
 
             if (!this.gameContext.activeLab) {
-                this.gameContext.activeLab = lab.name;
+                this.sendCommand(GameActions.RETRIEVE_LAB, { id: lab.id });
             }
         }
     }
@@ -148,8 +150,15 @@ export class GameWebSocketClient {
         if (player && Object.keys(player).length > 0) {
             playerStore.set(player);
             if (player.labs?.length > 0 && !this.gameContext.activeLab) {
-                this.gameContext.activeLab = player.labs[0].name;
+                this.sendCommand(GameActions.RETRIEVE_LAB, { id: player.labs[0].id });
             }
+        }
+    }
+
+    private handleRetrieveLab(lab: Lab): void {
+        if (lab && Object.keys(lab).length > 0) {
+            labStore.set(lab);
+            this.gameContext.activeLab = lab.name;
         }
     }
 }

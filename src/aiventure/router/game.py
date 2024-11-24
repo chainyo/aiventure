@@ -26,6 +26,7 @@ class GameAction(str, Enum):
 
     CREATE_LAB = "create-lab"
     CREATE_PLAYER = "create-player"
+    RETRIEVE_LAB = "retrieve-lab"
     RETRIEVE_PLAYER_DATA = "retrieve-player-data"
 
 
@@ -125,6 +126,37 @@ async def game_ws(
                                         action=GameAction.CREATE_PLAYER,
                                         payload={},
                                         error="Failed to create player",
+                                    ).model_dump()
+                                )
+                    case GameAction.RETRIEVE_LAB:
+                        async with LabCRUD(session) as crud:
+                            lab = await crud.read_by_id(message.payload["id"])
+
+                            if lab:
+                                await websocket.send_json(
+                                    GameMessageResponse(
+                                        action=GameAction.RETRIEVE_LAB,
+                                        payload=LabDataResponse(
+                                            id=lab.id,
+                                            name=lab.name,
+                                            location=lab.location,
+                                            valuation=lab.valuation,
+                                            income=lab.income,
+                                            tech_tree_id=lab.tech_tree_id,
+                                            player_id=lab.player_id,
+                                            employees=lab.employees,
+                                            models=lab.models,
+                                            investors=lab.investors,
+                                            player=lab.player,
+                                        ).model_dump(),
+                                    ).model_dump()
+                                )
+                            else:
+                                await websocket.send_json(
+                                    GameMessageResponse(
+                                        action=GameAction.RETRIEVE_LAB,
+                                        payload={},
+                                        error="Lab not found",
                                     ).model_dump()
                                 )
                     case GameAction.RETRIEVE_PLAYER_DATA:

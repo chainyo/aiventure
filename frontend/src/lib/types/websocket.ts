@@ -5,6 +5,7 @@
 export const GameActions = {
     CREATE_LAB: "create-lab",
     CREATE_PLAYER: "create-player",
+    RETRIEVE_LAB: "retrieve-lab",
     RETRIEVE_PLAYER_DATA: "retrieve-player-data",
 } as const;
 

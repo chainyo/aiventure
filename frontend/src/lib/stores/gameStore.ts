@@ -60,3 +60,20 @@ function createPlayerStore() {
 }
 
 export const playerStore = createPlayerStore();
+
+function createLabStore() {
+    const { subscribe, set, update } = writable<Lab | null>(null);
+
+    return {
+        subscribe,
+        set,
+        update,
+        reset: () => set(null),
+        initialize: async (data: Lab) => {
+            set(data);
+        },
+        getCurrentLab: () => get({ subscribe }),
+    };
+}
+
+export const labStore = createLabStore();

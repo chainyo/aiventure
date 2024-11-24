@@ -4,7 +4,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import col, select
 
 from aiventure.db.base import BaseCRUD
-from aiventure.models import Lab, Player, PlayerBase
+from aiventure.models import Player, PlayerBase
 
 
 class PlayerCRUD(BaseCRUD):
