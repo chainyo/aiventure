@@ -229,6 +229,7 @@ class PlayerBase(UUIDModel):
     """Player model."""
 
     name: str
+    avatar: str
     funds: float = Field(default=100000.0)
     user_id: str = Field(foreign_key="users.id", sa_column_kwargs={"unique": True})
 

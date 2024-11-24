@@ -6,15 +6,15 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import col, select
 
 from aiventure.db.base import BaseCRUD
-from aiventure.models import Lab, LabBase
+from aiventure.models import Lab, LabBase, Player
 
 
 class LabCRUD(BaseCRUD):
     """CRUD operations for the lab table."""
 
-    async def create(self, lab: LabBase) -> Lab:
+    async def create(self, lab: LabBase, player: Player) -> Lab:
         """Create a new lab."""
-        lab = Lab(**lab.model_dump())
+        lab = Lab(**lab.model_dump(), investors=[player])
 
         self.session.add(lab)
         await self.session.commit()

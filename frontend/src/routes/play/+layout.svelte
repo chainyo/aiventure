@@ -16,6 +16,7 @@
     import * as Card from "$lib/components/ui/card/index.js";
     import { Label } from "$lib/components/ui/label/index.js";
     import { Input } from "$lib/components/ui/input/index.js";
+    import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
     import * as Select from "$lib/components/ui/select/index.js";
     import * as Sidebar from "$lib/components/ui/sidebar/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
@@ -24,6 +25,10 @@
     let isLoading = $state(true);
     let connectionEstablished = $state(false);
     let needsVerification = $state(false);
+    let avatarImages: string[] = $state([]);
+    let selectedAvatar: string = $state("");
+    let playerAvatar: string = $state("");
+    let avatarLoadingPromise: Promise<void> | null = $state(null);
     let playerName: string = $state("");
     let labName: string = $state("");
     let location: string = $state("");
@@ -41,14 +46,28 @@
         $playerStore?.labs?.find((l) => l.name === gameContext.activeLab)?.name ?? "Select a lab"
     );
 
+    async function loadAvatarImages() {
+        try {
+            const response = await fetch("/avatars");
+            const paths = await response.json() as string[];
+            avatarImages = paths.map(path => `/avatars/${path.split("/").pop()}`);
+        } catch (error) {
+            console.error("Failed to load avatar images", error);
+            throw error;
+        }
+    }
+
     function handleCreatePlayer(event: SubmitEvent) {
         event.preventDefault();
         if (!playerName.trim()) {
             toast.error("Player name is required");
             return;
         }
+        if (!selectedAvatar) {
+            toast.error("Please select an avatar");
+        }
 
-        gameContext.client?.sendCommand(GameActions.CREATE_PLAYER, { name: playerName.trim() });
+        gameContext.client?.sendCommand(GameActions.CREATE_PLAYER, { name: playerName.trim(), avatar: selectedAvatar });
     }
 
     function handleCreateLab(event: SubmitEvent) {
@@ -74,6 +93,7 @@
             connectionEstablished = true;
 
             gameContext.client.sendCommand(GameActions.RETRIEVE_PLAYER_DATA);
+            console.log($playerStore?.avatar);
         } catch (error) {
             throw new Error("WebSocket connection failed");
         }
@@ -143,8 +163,8 @@
             <Sidebar.Menu class="flex flex-row items-center mx-auto justify-center gap-4">
                 {#if $playerStore}
                     <Sidebar.MenuItem>
-                        <Avatar.Root class="relative w-12 h-12">
-                            <Avatar.Image src="https://avatar.iran.liara.run/public" alt="avatar" />
+                        <Avatar.Root class="relative w-12 h-12 ">
+                            <Avatar.Image src={playerAvatar} alt="avatar" />
                             <Avatar.Fallback>{$playerStore.name.slice(0, 2)}</Avatar.Fallback>
                         </Avatar.Root>
                     </Sidebar.MenuItem>
@@ -205,6 +225,34 @@
                         <Label for="player-name">Player name</Label>
                         <Input type="text" id="player-name" placeholder="Jane Doe" bind:value={playerName} />
                         <p class="text-muted-foreground text-sm">Enter your player name.</p>
+                        <ScrollArea class="h-[400px] w-full rounded-md border p-4">
+                            {#if !avatarLoadingPromise}
+                                <Button variant="outline" onclick={() => avatarLoadingPromise = loadAvatarImages()} class="w-full">Load Avatars</Button>
+                            {:else}
+                                {#await avatarLoadingPromise}
+                                    <Skeleton class="h-[20px] w-[20px] rounded-full" />
+                                {:then}
+                                    <div class="grid grid-cols-4 gap-2">
+                                        {#each avatarImages as imageUrl}
+                                        <Avatar.Root class="relative w-12 h-12 cursor-pointer {selectedAvatar === imageUrl ? 'border-2 border-green-600' : ''}" onclick={() => selectedAvatar = imageUrl}>
+                                            <Avatar.Image src={imageUrl} alt="avatar" />
+                                            <Avatar.Fallback><Skeleton class="h-[20px] w-[20px] rounded-full" /></Avatar.Fallback>
+                                        </Avatar.Root>
+                                        {/each}
+                                    </div>
+                                {:catch error}
+                                    <div class="text-center">
+                                        <p class="text-destructive mb-2">Failed to load avatars: {error.message}</p>
+                                        <Button 
+                                            variant="outline" 
+                                            onclick={() => avatarLoadingPromise = loadAvatarImages()}
+                                        >
+                                            Retry
+                                        </Button>
+                                    </div>
+                                {/await}
+                            {/if}
+                        </ScrollArea>
                         <Button type="submit">Submit</Button>
                     </form>
                 {:else if $playerStore && ($playerStore.labs?.length === 0 || !$playerStore.labs)}

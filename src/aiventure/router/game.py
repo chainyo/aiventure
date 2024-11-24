@@ -75,7 +75,8 @@ async def game_ws(
                                     income=0,
                                     tech_tree_id=str(uuid.uuid4()),
                                     player_id=player.id,
-                                )
+                                ),
+                                player,
                             )
                             if lab:
                                 await websocket.send_json(
@@ -106,7 +107,13 @@ async def game_ws(
                                 )
                     case GameAction.CREATE_PLAYER:
                         async with PlayerCRUD(session) as crud:
-                            player = await crud.create(PlayerBase(name=message.payload["name"], user_id=user.id))
+                            player = await crud.create(
+                                PlayerBase(
+                                    name=message.payload["name"],
+                                    avatar=message.payload["avatar"],
+                                    user_id=user.id,
+                                )
+                            )
                             if player:
                                 await websocket.send_json(
                                     GameMessageResponse(

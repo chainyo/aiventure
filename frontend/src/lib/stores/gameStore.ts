@@ -3,6 +3,7 @@ import { writable, get } from "svelte/store";
 export interface Player {
     id: string;
     name: string;
+    avatar: string;
     funds: number;
     user_id: string;
     labs: Lab[];

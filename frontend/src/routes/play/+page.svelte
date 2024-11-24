@@ -5,6 +5,7 @@
     import { type GameContext, GAME_CONTEXT_KEY } from "$lib/types/context";
     import { labStore } from "$lib/stores/gameStore";
 
+    import * as Avatar from "$lib/components/ui/avatar/index.js";
     import { Badge } from "$lib/components/ui/badge/index.js";
     import * as Card from "$lib/components/ui/card/index.js";
     import * as Dialog from "$lib/components/ui/dialog/index.js";
@@ -109,7 +110,10 @@
                 <Card.Content>
                     <ScrollArea class="h-[200px] w-full p-4">
                         {#each $labStore?.investors ?? [] as investor}
-                            <p>{investor.name}</p>
+                            <Avatar.Root class="relative w-6 h-6">
+                                <Avatar.Image src={investor.avatar} alt="avatar" />
+                                <Avatar.Fallback>{investor.name.slice(0, 2).toUpperCase()}</Avatar.Fallback>
+                            </Avatar.Root>
                         {/each}
                     </ScrollArea>
                 </Card.Content>

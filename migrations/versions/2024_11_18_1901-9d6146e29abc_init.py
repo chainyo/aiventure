@@ -99,6 +99,7 @@ def upgrade() -> None:
         "players",
         sa.Column("id", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
         sa.Column("name", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("avatar", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
         sa.Column("funds", sa.Float(), nullable=False),
         sa.Column("user_id", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
         sa.ForeignKeyConstraint(
