@@ -27,7 +27,6 @@
     let needsVerification = $state(false);
     let avatarImages: string[] = $state([]);
     let selectedAvatar: string = $state("");
-    let playerAvatar: string = $state("");
     let avatarLoadingPromise: Promise<void> | null = $state(null);
     let playerName: string = $state("");
     let labName: string = $state("");
@@ -93,7 +92,6 @@
             connectionEstablished = true;
 
             gameContext.client.sendCommand(GameActions.RETRIEVE_PLAYER_DATA);
-            console.log($playerStore?.avatar);
         } catch (error) {
             throw new Error("WebSocket connection failed");
         }
@@ -164,7 +162,7 @@
                 {#if $playerStore}
                     <Sidebar.MenuItem>
                         <Avatar.Root class="relative w-12 h-12 ">
-                            <Avatar.Image src={playerAvatar} alt="avatar" />
+                            <Avatar.Image src={$playerStore.avatar} alt="avatar" />
                             <Avatar.Fallback>{$playerStore.name.slice(0, 2)}</Avatar.Fallback>
                         </Avatar.Root>
                     </Sidebar.MenuItem>

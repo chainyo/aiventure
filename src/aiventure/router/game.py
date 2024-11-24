@@ -179,6 +179,7 @@ async def game_ws(
                                     payload=PlayerDataResponse(
                                         id=player.id,
                                         name=player.name,
+                                        avatar=player.avatar,
                                         funds=player.funds,
                                         labs=player.labs,
                                         investments=player.investments,

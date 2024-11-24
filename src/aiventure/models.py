@@ -855,6 +855,7 @@ class PlayerDataResponse(BaseModel):
 
     id: str
     name: str
+    avatar: str
     funds: float
     labs: list[Lab]
     investments: list[Lab]
