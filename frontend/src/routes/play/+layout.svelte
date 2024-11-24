@@ -1,45 +1,45 @@
 <script lang="ts">
     import { onMount, onDestroy, setContext } from 'svelte';
     import { goto } from "$app/navigation";
-    import { ChevronDown, LoaderCircle, Moon, Sun } from "lucide-svelte";
+    import { LoaderCircle, Moon, Sun } from "lucide-svelte";
     import { toast } from "svelte-sonner";
     import { toggleMode } from "mode-watcher";
 
     import { GameWebSocketClient } from "$lib/websocket";
     import { GAME_CONTEXT_KEY, type GameContext } from "$lib/types/context";
-    import { GameActions, type GameMessageResponse } from "$lib/types/websocket";
-    import { playerStore, type Player, type Lab } from "$lib/stores/playerStore";
+    import { GameActions } from "$lib/types/websocket";
+    import { playerStore } from "$lib/stores/playerStore";
     import { userStore } from "$lib/stores/userStore";
     import * as Avatar from "$lib/components/ui/avatar/index.js";
     import { Badge } from "$lib/components/ui/badge/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import * as Card from "$lib/components/ui/card/index.js";
-    import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
     import { Label } from "$lib/components/ui/label/index.js";
     import { Input } from "$lib/components/ui/input/index.js";
+    import * as Select from "$lib/components/ui/select/index.js";
     import * as Sidebar from "$lib/components/ui/sidebar/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
 
-    let client: GameWebSocketClient | null = null;
     let { children } = $props();
     let isLoading = $state(true);
-    let sidebarOpen = $state(false);
     let connectionEstablished = $state(false);
     let needsVerification = $state(false);
-    let messages: string[] = [];
     let playerName: string = $state("");
     let labName: string = $state("");
     let location: string = $state("");
 
-    const gameContext: GameContext = {
-        client: null as GameWebSocketClient | null,
-        messages,
-        get sidebarOpen() { return sidebarOpen; },
-        toggleSidebar: () => sidebarOpen = !sidebarOpen,
-    };
-
+    let gameContext: GameContext = $state({
+        client: null,
+        messages: [],
+        activeLab: undefined,
+        sidebarOpen: false,
+        toggleSidebar: () => gameContext.sidebarOpen = !gameContext.sidebarOpen,
+    });
     setContext(GAME_CONTEXT_KEY, gameContext);
 
+    const triggerActiveLab = $derived(
+        $playerStore?.labs?.find((l) => l.name === gameContext.activeLab)?.name ?? "Select a lab"
+    );
 
     function handleCreatePlayer(event: SubmitEvent) {
         event.preventDefault();
@@ -48,7 +48,7 @@
             return;
         }
 
-        client?.sendCommand(GameActions.CREATE_PLAYER, { name: playerName.trim() });
+        gameContext.client?.sendCommand(GameActions.CREATE_PLAYER, { name: playerName.trim() });
     }
 
     function handleCreateLab(event: SubmitEvent) {
@@ -58,7 +58,7 @@
             return;
         }
 
-        client?.sendCommand(GameActions.CREATE_LAB, { name: labName.trim(), location });
+        gameContext.client?.sendCommand(GameActions.CREATE_LAB, { name: labName.trim(), location });
     }
 
     async function initializeWebSocket() {
@@ -67,41 +67,13 @@
         }
 
         try {
-            client = new GameWebSocketClient();
-            client.token = $userStore.access_token;
+            gameContext.client = new GameWebSocketClient(undefined, gameContext);
+            gameContext.client.token = $userStore.access_token;
 
-            await client.connectWebSocket();
+            await gameContext.client.connectWebSocket();
             connectionEstablished = true;
 
-            gameContext.client = client;
-
-            client.onMessage((data: GameMessageResponse) => {
-                messages = [...messages, JSON.stringify(data)];
-
-                switch (data.action) {
-                    case GameActions.CREATE_LAB:
-                        const lab = data.payload as Lab;
-                        if (lab && Object.keys(lab).length > 0 && $playerStore) {
-                            const updatedPlayer: Player = {
-                                ...$playerStore,
-                                labs: [...($playerStore.labs || []), lab]
-                            };
-                            playerStore.set(updatedPlayer);
-                            location = '';
-                            labName = '';
-                        }
-                        break;
-                    case GameActions.CREATE_PLAYER:
-                    case GameActions.RETRIEVE_PLAYER_DATA:
-                        const player = data.payload as Player;
-                        if (player && Object.keys(player).length > 0) {
-                            playerStore.set(player);
-                        }
-                        break;
-                }
-            });
-
-            client.sendCommand(GameActions.RETRIEVE_PLAYER_DATA);
+            gameContext.client.sendCommand(GameActions.RETRIEVE_PLAYER_DATA);
 
         } catch (error) {
             throw new Error("WebSocket connection failed");
@@ -109,8 +81,8 @@
     }
 
     onDestroy(() => {
-        if (client) {
-            client.close();
+        if (gameContext.client) {
+            gameContext.client.close();
             connectionEstablished = false;
         }
     });
@@ -132,7 +104,7 @@
                 throw new Error("User not authenticated");
             }
 
-            sidebarOpen = true;
+            gameContext.sidebarOpen = true;
         } catch (error) {
             console.error('Failed to initialize:', error);
             await goto('/login');
@@ -142,34 +114,24 @@
     });
 </script>
 
-<Sidebar.Provider open={sidebarOpen}>
+<Sidebar.Provider open={gameContext.sidebarOpen}>
     <Sidebar.Root>
         <Sidebar.Header>
             <Sidebar.Menu>
                 <Sidebar.MenuItem>
-                    <DropdownMenu.Root>
-                        <DropdownMenu.Trigger>
-                            {#snippet child({ props })}
-                                <Sidebar.MenuButton {...props}>
-                                    Select active Lab
-                                    <ChevronDown class="ml-auto" />
-                                </Sidebar.MenuButton>
-                            {/snippet}
-                        </DropdownMenu.Trigger>
-                        <DropdownMenu.Content class="w-[--bits-dropdown-menu-anchor-width]">
-                            {#if $playerStore?.labs}
-                                {#each $playerStore.labs as lab}
-                                    <DropdownMenu.Item>
-                                        <span>Lab {lab.name}</span>
-                                    </DropdownMenu.Item>
-                                {/each}
-                            {:else}
-                                <DropdownMenu.Item disabled>
-                                    <span>No labs found</span>
-                                </DropdownMenu.Item>
-                            {/if}
-                        </DropdownMenu.Content>
-                    </DropdownMenu.Root>
+                    <Select.Root type="single" name="activeLab" bind:value={gameContext.activeLab}>
+                        <Select.Trigger class="w-[180px]">{triggerActiveLab}</Select.Trigger>
+                        <Select.Content>
+                          <Select.Group>
+                            <Select.GroupHeading>🧪 Your Labs</Select.GroupHeading>
+                            {#each $playerStore?.labs ?? [] as lab}
+                              <Select.Item value={lab.name} label={lab.name}
+                                >{lab.name}</Select.Item
+                              >
+                            {/each}
+                          </Select.Group>
+                        </Select.Content>
+                    </Select.Root>
                 </Sidebar.MenuItem>
             </Sidebar.Menu>
         </Sidebar.Header>

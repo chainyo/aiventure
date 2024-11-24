@@ -2,15 +2,22 @@
  * WebSocket client for the game.
  */
 
-import type { GameAction, GameMessage, GameMessageResponse } from "./types/websocket";
+import type { GameAction, GameMessage, GameMessageResponse } from "$lib/types/websocket";
+import type { GameContext } from "$lib/types/context";
+import type { Player, Lab } from "$lib/stores/playerStore";
+import { playerStore } from "$lib/stores/playerStore";
+import { GameActions } from "$lib/types/websocket";
+
 
 export class GameWebSocketClient {
     private socket: WebSocket | null = null;
     public token: string | null = null;
     private baseUrl: string;
+    private gameContext: GameContext;
 
-    constructor(baseUrl: string = 'http://localhost:8000') {
+    constructor(baseUrl: string = 'http://localhost:8000', gameContext: GameContext) {
         this.baseUrl = baseUrl;
+        this.gameContext = gameContext;
     }
 
     async login(email: string, password: string): Promise<boolean> {
@@ -66,6 +73,21 @@ export class GameWebSocketClient {
                 });
             };
 
+            this.socket.onmessage = (event) => {
+                const data: GameMessageResponse = JSON.parse(event.data);
+                this.gameContext.messages = [...this.gameContext.messages, JSON.stringify(data)];
+
+                switch (data.action) {
+                    case GameActions.CREATE_LAB:
+                        this.handleCreateLab(data.payload as Lab);
+                        break;
+                    case GameActions.CREATE_PLAYER:
+                    case GameActions.RETRIEVE_PLAYER_DATA:
+                        this.handlePlayerData(data.payload as Player);
+                        break;
+                }
+            };
+
             await new Promise<void>((resolve, reject) => {
                 if (!this.socket) return reject(new Error('Socket not initialized'));
 
@@ -98,21 +120,36 @@ export class GameWebSocketClient {
         this.socket.send(JSON.stringify(message));
     }
 
-    onMessage(callback: (data: GameMessageResponse) => void): void {
-        if (!this.socket) {
-            throw new Error('WebSocket not connected');
-        }
-
-        this.socket.onmessage = (event) => {
-            const data: GameMessageResponse = JSON.parse(event.data);
-            callback(data);
-        };
-    }
-
     close(): void {
         if (this.socket) {
             this.socket.close();
             this.socket = null;
+        }
+    }
+
+    private handleCreateLab(lab: Lab): void {
+        if (lab && Object.keys(lab).length > 0) {
+            playerStore.update(currentPlayer => {
+                if (!currentPlayer) return currentPlayer;
+                
+                return {
+                    ...currentPlayer,
+                    labs: [...(currentPlayer.labs || []), lab]
+                };
+            });
+
+            if (!this.gameContext.activeLab) {
+                this.gameContext.activeLab = lab.name;
+            }
+        }
+    }
+
+    private handlePlayerData(player: Player): void {
+        if (player && Object.keys(player).length > 0) {
+            playerStore.set(player);
+            if (player.labs?.length > 0 && !this.gameContext.activeLab) {
+                this.gameContext.activeLab = player.labs[0].name;
+            }
         }
     }
 }
