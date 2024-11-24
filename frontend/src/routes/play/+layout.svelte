@@ -1,10 +1,12 @@
 <script lang="ts">
-    import { onMount, onDestroy } from 'svelte';
+    import { onMount, onDestroy, setContext } from 'svelte';
     import { goto } from "$app/navigation";
     import { ChevronDown, LoaderCircle, Moon, Sun } from "lucide-svelte";
+    import { toast } from "svelte-sonner";
     import { toggleMode } from "mode-watcher";
 
     import { GameWebSocketClient } from "$lib/websocket";
+    import { GAME_CONTEXT_KEY, type GameContext } from "$lib/types/context";
     import { GameActions, type GameMessageResponse } from "$lib/types/websocket";
     import { playerStore, type Player, type Lab } from "$lib/stores/playerStore";
     import { userStore } from "$lib/stores/userStore";
@@ -18,34 +20,49 @@
     import * as Sidebar from "$lib/components/ui/sidebar/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
 
-
-    let client: GameWebSocketClient;
+    let client: GameWebSocketClient | null = null;
     let { children } = $props();
     let isLoading = $state(true);
     let sidebarOpen = $state(false);
+    let connectionEstablished = $state(false);
     let needsVerification = $state(false);
     let messages: string[] = [];
     let playerName: string = $state("");
     let labName: string = $state("");
     let location: string = $state("");
 
+    const gameContext: GameContext = {
+        client: null as GameWebSocketClient | null,
+        messages,
+        get sidebarOpen() { return sidebarOpen; },
+        toggleSidebar: () => sidebarOpen = !sidebarOpen,
+    };
+
+    setContext(GAME_CONTEXT_KEY, gameContext);
+
 
     function handleCreatePlayer(event: SubmitEvent) {
         event.preventDefault();
-        if (!playerName.trim()) return;
+        if (!playerName.trim()) {
+            toast.error("Player name is required");
+            return;
+        }
 
-        client.sendCommand(GameActions.CREATE_PLAYER, { name: playerName.trim() });
+        client?.sendCommand(GameActions.CREATE_PLAYER, { name: playerName.trim() });
     }
 
     function handleCreateLab(event: SubmitEvent) {
         event.preventDefault();
-        if (!labName.trim()) return;
-        console.log({ name: labName.trim(), location });
-        client.sendCommand(GameActions.CREATE_LAB, { name: labName.trim(), location });
+        if (!labName.trim()) {
+            toast.error("Lab name is required");
+            return;
+        }
+
+        client?.sendCommand(GameActions.CREATE_LAB, { name: labName.trim(), location });
     }
 
     async function initializeWebSocket() {
-        if (!$userStore?.access_token) {
+        if (!$userStore?.access_token || connectionEstablished) {
             return;
         }
 
@@ -54,6 +71,9 @@
             client.token = $userStore.access_token;
 
             await client.connectWebSocket();
+            connectionEstablished = true;
+
+            gameContext.client = client;
 
             client.onMessage((data: GameMessageResponse) => {
                 messages = [...messages, JSON.stringify(data)];
@@ -91,6 +111,7 @@
     onDestroy(() => {
         if (client) {
             client.close();
+            connectionEstablished = false;
         }
     });
 

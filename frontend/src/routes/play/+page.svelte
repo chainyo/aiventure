@@ -1,5 +1,10 @@
 <script lang="ts">
+    import { getContext } from "svelte";
+
+    import { type GameContext, GAME_CONTEXT_KEY } from "$lib/types/context";
     import { playerStore } from "$lib/stores/playerStore";
+
+    const { client, messages, sidebarOpen, toggleSidebar } = getContext<GameContext>(GAME_CONTEXT_KEY);
 </script>
 
 <svelte:head>
