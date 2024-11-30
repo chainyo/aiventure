@@ -46,6 +46,36 @@ class PlayerCRUD(BaseCRUD):
 
         return _player
 
+    async def increment_funds(self, player_id: str, amount: int) -> Player | None:
+        """Increment a player's funds."""
+        _player = await self.get_by_id(player_id)
+
+        if _player is None:
+            return None
+
+        _player.funds += amount
+
+        self.session.add(_player)
+        await self.session.commit()
+        await self.session.refresh(_player)
+
+        return _player
+
+    async def decrement_funds(self, player_id: str, amount: int) -> Player | None:
+        """Decrement a player's funds."""
+        _player = await self.get_by_id(player_id)
+
+        if _player is None:
+            return None
+
+        _player.funds -= amount
+
+        self.session.add(_player)
+        await self.session.commit()
+        await self.session.refresh(_player)
+
+        return _player
+
     async def read_player_data_by_id(self, player_id: str) -> Player | None:
         """Read player data by id."""
         query = (

@@ -1,10 +1,11 @@
 /**
  * WebSocket client for the game.
  */
+import { toast } from "svelte-sonner";
 
 import type { GameAction, GameMessage, GameMessageResponse } from "$lib/types/websocket";
 import type { GameContext } from "$lib/types/context";
-import { labStore, playerStore, type Lab, type Player } from "$lib/stores/gameStore";
+import { labStore, playerStore, type AIModel, type Lab, type Player } from "$lib/stores/gameStore";
 import { GameActions } from "$lib/types/websocket";
 
 
@@ -76,9 +77,16 @@ export class GameWebSocketClient {
                 const data: GameMessageResponse = JSON.parse(event.data);
                 this.gameContext.messages = [...this.gameContext.messages, JSON.stringify(data)];
 
+                if (data.error) {
+                    toast.error(data.error);
+                }
+
                 switch (data.action) {
                     case GameActions.CREATE_LAB:
                         this.handleCreateLab(data.payload as Lab);
+                        break;
+                    case GameActions.CREATE_MODEL:
+                        this.handleCreateModel(data.payload as AIModel);
                         break;
                     case GameActions.RETRIEVE_LAB:
                         this.handleRetrieveLab(data.payload as Lab);
@@ -86,6 +94,9 @@ export class GameWebSocketClient {
                     case GameActions.CREATE_PLAYER:
                     case GameActions.RETRIEVE_PLAYER_DATA:
                         this.handlePlayerData(data.payload as Player);
+                        break;
+                    case GameActions.UPDATE_FUNDS:
+                        this.handleUpdateFunds(data.payload as { funds: number });
                         break;
                 }
             };
@@ -139,26 +150,43 @@ export class GameWebSocketClient {
                     labs: [...(currentPlayer.labs || []), lab]
                 };
             });
+        }
+    }
 
-            if (!this.gameContext.activeLab) {
-                this.sendCommand(GameActions.RETRIEVE_LAB, { id: lab.id });
-            }
+    private handleCreateModel(model: AIModel): void {
+        if (model && Object.keys(model).length > 0) {
+            labStore.update(currentLab => {
+                if (!currentLab) return currentLab;
+                toast.success(`Created model ${model.name} in ${currentLab.name}`);
+
+                return {
+                    ...currentLab,
+                    models: [...(currentLab.models || []), model]
+                };
+            });
         }
     }
 
     private handlePlayerData(player: Player): void {
         if (player && Object.keys(player).length > 0) {
             playerStore.set(player);
-            if (player.labs?.length > 0 && !this.gameContext.activeLab) {
-                this.sendCommand(GameActions.RETRIEVE_LAB, { id: player.labs[0].id });
-            }
         }
     }
 
     private handleRetrieveLab(lab: Lab): void {
         if (lab && Object.keys(lab).length > 0) {
             labStore.set(lab);
-            this.gameContext.activeLab = lab.name;
         }
+    }
+
+    private handleUpdateFunds(data: { funds: number }): void {
+        playerStore.update(currentPlayer => {
+            if (!currentPlayer) return currentPlayer;
+
+            return {
+                ...currentPlayer,
+                funds: data.funds
+            };
+        });
     }
 }

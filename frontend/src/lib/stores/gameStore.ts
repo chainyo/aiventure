@@ -28,7 +28,6 @@ export interface AIModel {
     ai_model_type_id: number;
     tech_tree_id: string;
     lab_id: string;
-    lab: Lab;
 }
 
 export interface Investor {

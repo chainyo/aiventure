@@ -9,10 +9,15 @@ from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from aiventure.db import LabCRUD, PlayerCRUD
+from aiventure.constants import CREATE_MODEL_COST
+from aiventure.db import AIModelCRUD, LabCRUD, PlayerCRUD
 from aiventure.dependencies import get_async_session_from_websocket
 from aiventure.gcmanager import GameConnectionManager
 from aiventure.models import (
+    AI_MODEL_TYPE_MAPPING,
+    AIModelBase,
+    AIModelDataResponse,
+    AIModelTypeBase,
     Investment,
     Investor,
     LabBase,
@@ -34,9 +39,11 @@ class GameAction(str, Enum):
     """Game action."""
 
     CREATE_LAB = "create-lab"
+    CREATE_MODEL = "create-model"
     CREATE_PLAYER = "create-player"
     RETRIEVE_LAB = "retrieve-lab"
     RETRIEVE_PLAYER_DATA = "retrieve-player-data"
+    UPDATE_FUNDS = "update-funds"
 
 
 class GameMessage(BaseModel):
@@ -120,6 +127,102 @@ async def game_ws(
                                         error="Failed to create lab",
                                     ).model_dump()
                                 )
+                    case GameAction.CREATE_MODEL:
+                        # Check if funds are sufficient
+                        if player.funds < CREATE_MODEL_COST:
+                            await websocket.send_json(
+                                GameMessageResponse(
+                                    action=GameAction.CREATE_MODEL,
+                                    payload={},
+                                    error="Insufficient funds",
+                                ).model_dump()
+                            )
+                            continue
+                        # Check if lab is the user's lab
+                        _lab = next((lab for lab in player.labs if lab.id == message.payload["lab_id"]), None)
+                        if not _lab:
+                            await websocket.send_json(
+                                GameMessageResponse(
+                                    action=GameAction.CREATE_MODEL,
+                                    payload={},
+                                    error="You can only create a model for your lab.",
+                                ).model_dump()
+                            )
+                            continue
+                        # Get the ai model type id
+                        ai_model_type: AIModelTypeBase | None = AI_MODEL_TYPE_MAPPING.get(
+                            message.payload["category"], None
+                        )
+                        if not ai_model_type:
+                            await websocket.send_json(
+                                GameMessageResponse(
+                                    action=GameAction.CREATE_MODEL,
+                                    payload={},
+                                    error="Model category not found",
+                                ).model_dump()
+                            )
+                            continue
+                        # Check if model name is available or create new model
+                        async with AIModelCRUD(session) as crud:
+                            if await crud.get_by_name(message.payload["name"]):
+                                await websocket.send_json(
+                                    GameMessageResponse(
+                                        action=GameAction.CREATE_MODEL,
+                                        payload={},
+                                        error="Model name already exists",
+                                    ).model_dump()
+                                )
+                                continue
+                            # Create AI Model
+                            model = await crud.create(
+                                AIModelBase(
+                                    name=message.payload["name"],
+                                    ai_model_type_id=ai_model_type.id,
+                                    tech_tree_id=str(uuid.uuid4()),
+                                    lab_id=_lab.id,
+                                ),
+                                _lab,
+                            )
+
+                            if model:
+                                await websocket.send_json(
+                                    GameMessageResponse(
+                                        action=GameAction.CREATE_MODEL,
+                                        payload=AIModelDataResponse(
+                                            id=model.id,
+                                            name=model.name,
+                                            ai_model_type_id=model.ai_model_type_id,
+                                            tech_tree_id=model.tech_tree_id,
+                                            lab_id=model.lab_id,
+                                        ).model_dump(),
+                                    ).model_dump()
+                                )
+                            else:
+                                await websocket.send_json(
+                                    GameMessageResponse(
+                                        action=GameAction.CREATE_MODEL,
+                                        payload={},
+                                        error="Failed to create model",
+                                    ).model_dump()
+                                )
+                                continue
+                        # Decrement funds
+                        async with PlayerCRUD(session) as crud:
+                            _player = await crud.decrement_funds(player.id, CREATE_MODEL_COST)
+                            if _player:
+                                player.funds = _player.funds
+                                await websocket.send_json(
+                                    GameMessageResponse(
+                                        action=GameAction.UPDATE_FUNDS,
+                                        payload={
+                                            "funds": player.funds
+                                        },
+                                    ).model_dump()
+                                )
+                            else:
+                                # TODO: Handle error
+                                continue
+
                     case GameAction.CREATE_PLAYER:
                         async with PlayerCRUD(session) as crud:
                             player = await crud.create(

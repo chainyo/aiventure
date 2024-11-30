@@ -877,3 +877,12 @@ class LabDataResponse(BaseModel):
     models: list[AIModel]
     investors: list[Investor]
     player: Player | None
+
+class AIModelDataResponse(BaseModel):
+    """Response model for create-model"""
+
+    id: str
+    name: str
+    ai_model_type_id: int
+    tech_tree_id: str
+    lab_id: str

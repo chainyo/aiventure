@@ -14,10 +14,7 @@ class LabCRUD(BaseCRUD):
 
     async def create(self, lab: LabBase, player: Player) -> Lab:
         """Create a new lab."""
-        print(player)
-        print(lab)
         lab = PlayerLabInvestmentLink(player=player, lab=Lab(**lab.model_dump()), part=1.0)
-        print(lab)
 
         self.session.add(lab)
         await self.session.commit()

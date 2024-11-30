@@ -5,7 +5,7 @@ from uuid import UUID
 from sqlmodel import col, select
 
 from aiventure.db.base import BaseCRUD
-from aiventure.models import AIModel, AIModelBase, AIModelType, AIModelTypeBase
+from aiventure.models import AIModel, AIModelBase, AIModelType, AIModelTypeBase, Lab
 
 
 class AIModelTypeCRUD(BaseCRUD):
@@ -26,6 +26,11 @@ class AIModelTypeCRUD(BaseCRUD):
         ai_model_type = await self.session.execute(select(AIModelType).where(col(AIModelType.id) == ai_model_type_id))
         return ai_model_type.scalar_one_or_none()
 
+    async def get_by_name(self, name: str) -> AIModelType | None:
+        """Get an AI model type by name."""
+        ai_model_type = await self.session.execute(select(AIModelType).where(col(AIModelType.name) == name))
+        return ai_model_type.scalar_one_or_none()
+
     async def update(self, ai_model_type: AIModelTypeBase) -> AIModelType | None:
         """Update an AI model type."""
         _ai_model_type = await self.get_by_id(ai_model_type.id)
@@ -44,7 +49,7 @@ class AIModelTypeCRUD(BaseCRUD):
 class AIModelCRUD(BaseCRUD):
     """CRUD operations for the ai_models table."""
 
-    async def create(self, ai_model: AIModelBase) -> AIModel:
+    async def create(self, ai_model: AIModelBase, lab: Lab) -> AIModel:
         """Create a new AI model."""
         ai_model = AIModel(**ai_model.model_dump())
 
@@ -57,6 +62,11 @@ class AIModelCRUD(BaseCRUD):
     async def get_by_id(self, ai_model_id: str | UUID) -> AIModel | None:
         """Get an AI model by ID."""
         ai_model = await self.session.execute(select(AIModel).where(col(AIModel.id) == str(ai_model_id)))
+        return ai_model.scalar_one_or_none()
+
+    async def get_by_name(self, name: str) -> AIModel | None:
+        """Get an AI model by name."""
+        ai_model = await self.session.execute(select(AIModel).where(col(AIModel.name) == name))
         return ai_model.scalar_one_or_none()
 
     async def update(self, ai_model: AIModelBase) -> AIModel | None:
