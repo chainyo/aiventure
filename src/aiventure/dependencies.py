@@ -1,5 +1,6 @@
 """Dependencies for the API."""
 
+import asyncio
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
@@ -10,8 +11,9 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlmodel import SQLModel
 
 from aiventure.config import settings
-from aiventure.db import PlayerCRUD, UsersCRUD
-from aiventure.models import PlayerBase, UserCreate
+from aiventure.db import UsersCRUD
+from aiventure.game_manager import game_manager
+from aiventure.models import UserCreate
 
 
 @asynccontextmanager
@@ -26,7 +28,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         await connection.run_sync(SQLModel.metadata.create_all)
 
     await init_database(app.state.async_session())
+    game_task = asyncio.create_task(game_manager.start(app.state.async_session()))
+
     yield
+
+    await game_manager.stop()
+    await game_task
+    await app.state.async_engine.dispose()
 
 
 async def get_async_session(request: Request) -> AsyncGenerator[AsyncSession, None]:

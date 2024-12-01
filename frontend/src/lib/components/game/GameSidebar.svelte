@@ -3,6 +3,7 @@
     import { BadgeCent, FlaskConical, Moon, Store, Sun, Trophy } from "lucide-svelte";
     import { toggleMode } from "mode-watcher";
 
+    import NumberTransition from "./NumberTransition.svelte";
     import { playerStore } from "$lib/stores/gameStore";
     import { userStore } from "$lib/stores/userStore";
     import * as Avatar from "$lib/components/ui/avatar/index.js";
@@ -30,6 +31,11 @@
     <Sidebar.Root>
         <Sidebar.Header>
             <Sidebar.Menu>
+                <Sidebar.MenuItem class="flex items-center">
+                    <Sidebar.MenuButton>
+                        <Badge variant="destructive">AI Venture</Badge>
+                    </Sidebar.MenuButton>
+                </Sidebar.MenuItem>
                 <Sidebar.MenuItem class="w-full flex justify-center">
                     <Select.Root type="single" name="activeLab" bind:value={activeLab}>
                         <Select.Trigger class="w-full max-w-[calc(100%-1rem)]">{triggerActiveLab}</Select.Trigger>
@@ -80,7 +86,7 @@
                             <Badge class="max-w-full" variant="outline">{$playerStore.name}</Badge>
                         </Sidebar.MenuItem>
                         <Sidebar.MenuItem>
-                            <Badge class="max-w-full bg-accent text-accent-foreground">$ {$playerStore.funds}</Badge>
+                            <NumberTransition value={$playerStore?.funds ?? 0} />
                         </Sidebar.MenuItem>
                     </div>
                 {:else}

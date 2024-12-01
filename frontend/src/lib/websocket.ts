@@ -5,7 +5,15 @@ import { toast } from "svelte-sonner";
 
 import type { GameAction, GameMessage, GameMessageResponse } from "$lib/types/websocket";
 import type { GameContext } from "$lib/types/context";
-import { labStore, playerStore, type AIModel, type Lab, type Player } from "$lib/stores/gameStore";
+import {
+    labStore,
+    playerStore,
+    type AIModel,
+    type Lab,
+    type Player,
+    type UpdateFunds
+} from "$lib/stores/gameStore";
+import { fundsAnimationStore } from "$lib/stores/animationStore";
 import { GameActions } from "$lib/types/websocket";
 
 
@@ -96,7 +104,7 @@ export class GameWebSocketClient {
                         this.handlePlayerData(data.payload as Player);
                         break;
                     case GameActions.UPDATE_FUNDS:
-                        this.handleUpdateFunds(data.payload as { funds: number });
+                        this.handleUpdateFunds(data.payload as UpdateFunds);
                         break;
                 }
             };
@@ -144,7 +152,7 @@ export class GameWebSocketClient {
         if (lab && Object.keys(lab).length > 0) {
             playerStore.update(currentPlayer => {
                 if (!currentPlayer) return currentPlayer;
-                
+
                 return {
                     ...currentPlayer,
                     labs: [...(currentPlayer.labs || []), lab]
@@ -179,13 +187,18 @@ export class GameWebSocketClient {
         }
     }
 
-    private handleUpdateFunds(data: { funds: number }): void {
+    private handleUpdateFunds(data: UpdateFunds): void {
         playerStore.update(currentPlayer => {
             if (!currentPlayer) return currentPlayer;
 
+            fundsAnimationStore.set({
+                difference: data.funds - currentPlayer.funds,
+                timestamp: Date.now()
+            });
+
             return {
                 ...currentPlayer,
-                funds: data.funds
+                funds: data.funds,
             };
         });
     }

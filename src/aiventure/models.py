@@ -2,6 +2,7 @@
 
 import enum
 import uuid
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 from sqlmodel import Column, Enum, Field, Relationship, SQLModel
@@ -204,11 +205,11 @@ class AIModelType(AIModelTypeBase, table=True):
     __tablename__ = "ai_model_types"
 
 
-AI_MODEL_TYPE_MAPPING: dict[str, AIModelTypeBase] = {
-    "audio": AIModelTypeBase(id=1, name="Audio"),
-    "cv": AIModelTypeBase(id=2, name="CV"),
-    "nlp": AIModelTypeBase(id=3, name="NLP"),
-    "multi_modal": AIModelTypeBase(id=4, name="Multi Modal"),
+AI_MODEL_TYPE_MAPPING: dict[int, AIModelTypeBase] = {
+    1: AIModelTypeBase(id=1, name="Audio"),
+    2: AIModelTypeBase(id=2, name="CV"),
+    3: AIModelTypeBase(id=3, name="NLP"),
+    4: AIModelTypeBase(id=4, name="Multi Modal"),
 }
 
 
@@ -878,6 +879,7 @@ class LabDataResponse(BaseModel):
     investors: list[Investor]
     player: Player | None
 
+
 class AIModelDataResponse(BaseModel):
     """Response model for create-model"""
 
@@ -886,3 +888,10 @@ class AIModelDataResponse(BaseModel):
     ai_model_type_id: int
     tech_tree_id: str
     lab_id: str
+
+
+class FundsUpdate(BaseModel):
+    """Funds update model"""
+
+    funds: float
+    update_type: Literal["increment", "decrement"]

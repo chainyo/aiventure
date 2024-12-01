@@ -1,21 +1,16 @@
 <script lang="ts">
-    import { 
-        AudioLines,
+    import {
         BrainCircuit,
         Briefcase,
         CircleDollarSign,
         CirclePlus,
-        Eye,
         HandCoins,
         Landmark,
-        MessageSquareText,
         Network,
-        SquareStack,
         UserRoundPlus,
-        type Icon as IconType
     } from "lucide-svelte";
 
-    import { CREATE_MODEL_COST } from "$lib/constants";
+    import { CREATE_MODEL_COST, LOCATIONS, MODEL_CATEGORIES } from "$lib/constants";
     import { labStore } from "$lib/stores/gameStore";
 
     import * as Avatar from "$lib/components/ui/avatar/index.js";
@@ -26,22 +21,13 @@
     import * as HoverCard from "$lib/components/ui/hover-card/index.js";
     import { Input } from "$lib/components/ui/input/index.js";
     import { Label } from "$lib/components/ui/label/index.js";
+    import { Progress } from "$lib/components/ui/progress/index.js";
     import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
 
     let { activeLab, handleCreateEmployee, handleCreateModel } = $props();
-    let modelName = $state("");
-    let modelCategory = $state("audio");
-    const locationEmoji: Record<string, string> = {
-        us: "🌎",
-        eu: "🌍",
-        apac: "🌏",
-    };
-    const modelCategories: Record<string, { title: typeof IconType, description: string }> = {
-        "audio": { title: AudioLines, description: "Audio" },
-        "cv": { title: Eye, description: "Vision" },
-        "nlp": { title: MessageSquareText, description: "Language" },
-        "multi_modal": { title: SquareStack, description: "Modal" },
-    };
+    let modelName: string = $state("");
+    let modelCategory: number = $state(1);
+
 </script>
 
 {#if activeLab}
@@ -52,7 +38,7 @@
                 <Card.Title>{activeLab}</Card.Title>
                 <Card.Description>
                     <Badge variant="outline">
-                        {locationEmoji[$labStore?.location ?? "us"]} {$labStore?.location.toUpperCase()}
+                        {LOCATIONS[$labStore?.location ?? "us"].emoji} {$labStore?.location.toUpperCase()}
                     </Badge>
                 </Card.Description>
             </Card.Header>
@@ -105,15 +91,16 @@
                                 <Label for="model-name">Model name</Label>
                                 <Input type="text" id="model-name" placeholder="x-chat-v1" bind:value={modelName} />
                                 <div class="grid grid-cols-4 gap-4">
-                                    {#each Object.keys(modelCategories) as category}
-                                        <Card.Root 
-                                            class="p-4 cursor-pointer {modelCategory === category ? 'border-2 border-green-600' : ''}" 
+                                    {#each Object.entries(MODEL_CATEGORIES) as [categoryStr, categoryData]}
+                                        {@const category = parseInt(categoryStr)}
+                                        <Card.Root
+                                            class="p-4 cursor-pointer {modelCategory === category ? 'border-2 border-green-600' : ''}"
                                             onclick={() => modelCategory = category}
                                         >
                                             <Card.Header class="flex flex-col items-center justify-center text-center">
-                                                {@const Icon = modelCategories[category].title}
+                                                {@const Icon = categoryData.icon}
                                                 <Card.Title><Icon class="w-4 h-4" /></Card.Title>
-                                                <Card.Description class="text-xs">{modelCategories[category].description}</Card.Description>
+                                                <Card.Description class="text-xs">{categoryData.description}</Card.Description>
                                             </Card.Header>
                                         </Card.Root>
                                     {/each}
@@ -127,7 +114,15 @@
             <Card.Content>
                 <ScrollArea class="h-[200px] w-full p-4">
                     {#each $labStore?.models ?? [] as model}
-                        <p>{model.name}</p>
+                        {@const Icon = MODEL_CATEGORIES[model.ai_model_type_id].icon}
+                        <div class="grid grid-cols-7 gap-4 content-center">
+                            <Icon class="w-4 h-4 col-span-1 justify-self-end" />
+                            <p class="col-span-2 justify-self-start">{model.name}</p>
+                            <Progress value={Math.floor(Math.random() * 100)} class="col-span-3" />
+                            <button class="col-span-1 justify-self-end hover:bg-primary-foreground rounded-md p-2">
+                                <Network class="w-4 h-4" />
+                            </button>
+                        </div>
                     {/each}
                 </ScrollArea>
             </Card.Content>
@@ -189,6 +184,4 @@
             </Card.Content>
         </Card.Root>
     </div>
-{:else}
-    <p>No lab selected. Please select a lab from the sidebar.</p>
 {/if}

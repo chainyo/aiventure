@@ -81,10 +81,7 @@ class PlayerCRUD(BaseCRUD):
         query = (
             select(Player)
             .where(col(Player.id) == player_id)
-            .options(
-                selectinload(Player.labs),
-                selectinload(Player.investments)
-            )
+            .options(selectinload(Player.labs), selectinload(Player.investments))
         )
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
@@ -94,10 +91,7 @@ class PlayerCRUD(BaseCRUD):
         query = (
             select(Player)
             .where(col(Player.user_id) == user_id)
-            .options(
-                selectinload(Player.labs),
-                selectinload(Player.investments)
-            )
+            .options(selectinload(Player.labs), selectinload(Player.investments))
         )
         result = await self.session.execute(query)
         return result.scalar_one_or_none()

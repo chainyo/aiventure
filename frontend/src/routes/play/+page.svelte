@@ -18,11 +18,12 @@
     import LeaderboardView from "$lib/components/game/LeaderboardView.svelte";
     import MarketView from "$lib/components/game/MarketView.svelte";
 
+    import { LOCATIONS } from "$lib/constants";
     import { GameWebSocketClient } from "$lib/websocket";
     import { playerStore } from "$lib/stores/gameStore";
     import { userStore } from "$lib/stores/userStore";
     import { GameActions } from "$lib/types/websocket";
-    import { GAME_CONTEXT_KEY, type GameContext } from "$lib/types/context";
+    import { type GameContext } from "$lib/types/context";
 
     // Game context & controls
     let activeTab: string = $state("home");
@@ -48,7 +49,7 @@
     $effect(() => {
         if (activeLab) {
             gameContext.client?.sendCommand(
-                GameActions.RETRIEVE_LAB, 
+                GameActions.RETRIEVE_LAB,
                 { id: $playerStore?.labs?.find((l) => l.name === activeLab)?.id }
             );
         }
@@ -88,19 +89,19 @@
         console.log("add employee");
     }
 
-    function handleCreateModel(event: SubmitEvent, modelName: string, modelCategory: string) {
+    function handleCreateModel(event: SubmitEvent, modelName: string, modelCategory: number) {
         event.preventDefault();
         if (!modelName.trim()) {
             toast.error("Model name is required");
             return;
         }
-        if (!modelCategory.trim()) {
+        if (!modelCategory) {
             toast.error("Choose a model category");
             return;
         }
 
         gameContext.client?.sendCommand(
-            GameActions.CREATE_MODEL, 
+            GameActions.CREATE_MODEL,
             { name: modelName.trim(), category: modelCategory, lab_id: $playerStore?.labs?.find((l) => l.name === activeLab)?.id }
         );
     }
@@ -151,7 +152,7 @@
 
             // Fetch user data first
             await userStore.fetchUser();
-            
+
             if ($userStore?.access_token) {
                 await initializeWebSocket();
             } else {
@@ -206,8 +207,8 @@
                             {:else}
                                 <div class="text-center">
                                     <p class="text-destructive mb-2">Failed to load avatars</p>
-                                    <Button 
-                                        variant="outline" 
+                                    <Button
+                                        variant="outline"
                                         onclick={() => loadAvatarImages()}
                                     >
                                         Retry
@@ -222,57 +223,27 @@
                         <Label for="lab-name">Lab name</Label>
                         <Input type="text" id="lab-name" placeholder="ClosedAI" bind:value={labName} />
                         <p class="text-muted-foreground text-sm">Enter your lab name.</p>
-                        
+
                         <div class="grid grid-cols-3 gap-4 my-4">
-                            <Card.Root 
-                                class="cursor-pointer {location === 'us' ? 'border-2 border-green-600' : ''}" 
-                                onclick={() => location = "us"}
+                            {#each Object.entries(LOCATIONS) as [id, loc]}
+                            <Card.Root
+                                class="cursor-pointer {location === id ? 'border-2 border-green-600' : ''}"
+                                onclick={() => location = id}
                             >
                                 <Card.Header>
-                                    <Card.Title>US 🌎</Card.Title>
-                                    <Card.Description>Silicon Valley Hub</Card.Description>
+                                    <Card.Title>{loc.emoji} {loc.title}</Card.Title>
+                                    <Card.Description>{loc.description}</Card.Description>
                                 </Card.Header>
                                 <Card.Content>
                                     <ul class="list-disc list-inside">
-                                        <li class="text-sm">+5% Valuation</li>
-                                        <li class="text-sm">+5% Income</li>
+                                        {#each loc.bonuses as bonus}
+                                            <li class="text-sm">{bonus}</li>
+                                        {/each}
                                     </ul>
                                 </Card.Content>
                             </Card.Root>
-
-                            <Card.Root 
-                                class="cursor-pointer {location === 'eu' ? 'border-2 border-green-600' : ''}" 
-                                onclick={() => location = "eu"}
-                            >
-                                <Card.Header>
-                                    <Card.Title>EU 🌍</Card.Title>
-                                    <Card.Description>Research Focus</Card.Description>
-                                </Card.Header>
-                                <Card.Content>
-                                    <ul class="list-disc list-inside">
-                                        <li class="text-sm">+15% Research Speed</li>
-                                        <li class="text-sm">-5% Valuation</li>
-                                    </ul>
-                                </Card.Content>
-                            </Card.Root>
-
-                            <Card.Root 
-                                class="cursor-pointer {location === 'apac' ? 'border-2 border-green-600' : ''}" 
-                                onclick={() => location = "apac"}
-                            >
-                                <Card.Header>
-                                    <Card.Title>APAC 🌏</Card.Title>
-                                    <Card.Description>Balanced Growth</Card.Description>
-                                </Card.Header>
-                                <Card.Content>
-                                    <ul class="list-disc list-inside">
-                                        <li class="text-sm">+5% Research Speed</li>
-                                        <li class="text-sm">+5% Income</li>
-                                    </ul>
-                                </Card.Content>
-                            </Card.Root>
+                            {/each}
                         </div>
-
                         <Button type="submit" disabled={!location}>Submit</Button>
                     </form>
                 {/if}

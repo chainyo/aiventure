@@ -40,6 +40,11 @@ export interface Investment {
     part: number;
 }
 
+export interface UpdateFunds {
+    funds: number;
+    update_type: "increment" | "decrement";
+}
+
 export interface Lab {
     id: string;
     name: string;

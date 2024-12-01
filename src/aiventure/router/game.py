@@ -2,22 +2,20 @@
 
 import logging
 import uuid
-from enum import Enum
-from typing import Any
 
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
-from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from aiventure.constants import CREATE_MODEL_COST
 from aiventure.db import AIModelCRUD, LabCRUD, PlayerCRUD
 from aiventure.dependencies import get_async_session_from_websocket
-from aiventure.gcmanager import GameConnectionManager
+from aiventure.game_manager import GameAction, GameMessage, GameMessageResponse, game_manager
 from aiventure.models import (
     AI_MODEL_TYPE_MAPPING,
     AIModelBase,
     AIModelDataResponse,
     AIModelTypeBase,
+    FundsUpdate,
     Investment,
     Investor,
     LabBase,
@@ -31,34 +29,7 @@ from aiventure.models import (
 
 logger = logging.getLogger("uvicorn.error")
 
-game_connection_manager = GameConnectionManager()
 router = APIRouter()
-
-
-class GameAction(str, Enum):
-    """Game action."""
-
-    CREATE_LAB = "create-lab"
-    CREATE_MODEL = "create-model"
-    CREATE_PLAYER = "create-player"
-    RETRIEVE_LAB = "retrieve-lab"
-    RETRIEVE_PLAYER_DATA = "retrieve-player-data"
-    UPDATE_FUNDS = "update-funds"
-
-
-class GameMessage(BaseModel):
-    """Game message."""
-
-    action: GameAction
-    payload: dict[str, Any]
-
-
-class GameMessageResponse(BaseModel):
-    """Game message response."""
-
-    action: GameAction
-    payload: dict[str, Any]
-    error: str | None = None
 
 
 @router.websocket("/ws")
@@ -69,10 +40,9 @@ async def game_ws(
 ) -> None:
     """Websocket endpoint for game connections."""
     try:
-        user: User | None = await game_connection_manager.connect(websocket, token, session)
+        user: User | None = await game_manager.connect(websocket, token, session)
         if not user:
             return
-
         player: Player | None = None
 
         while True:
@@ -149,7 +119,7 @@ async def game_ws(
                                 ).model_dump()
                             )
                             continue
-                        # Get the ai model type id
+                        # Get the ai model type id by id
                         ai_model_type: AIModelTypeBase | None = AI_MODEL_TYPE_MAPPING.get(
                             message.payload["category"], None
                         )
@@ -214,9 +184,7 @@ async def game_ws(
                                 await websocket.send_json(
                                     GameMessageResponse(
                                         action=GameAction.UPDATE_FUNDS,
-                                        payload={
-                                            "funds": player.funds
-                                        },
+                                        payload=FundsUpdate(funds=player.funds, update_type="decrement").model_dump(),
                                     ).model_dump()
                                 )
                             else:
@@ -252,6 +220,7 @@ async def game_ws(
                                         ).model_dump(),
                                     ).model_dump()
                                 )
+                                await game_manager.set_player_id(user.id, player.id)
                             else:
                                 await websocket.send_json(
                                     GameMessageResponse(
@@ -320,9 +289,10 @@ async def game_ws(
                                             )
                                             for investment in player.investments
                                         ],
-                                    ).model_dump()
+                                    ).model_dump(),
                                 ).model_dump()
                             )
+                            await game_manager.set_player_id(user.id, player.id)
                         else:
                             await websocket.send_json(
                                 GameMessageResponse(
@@ -341,7 +311,7 @@ async def game_ws(
 
     except WebSocketDisconnect:
         if user:
-            game_connection_manager.disconnect(user.id)
+            game_manager.disconnect(user.id)
 
     except Exception as e:
         if not websocket.client_state.DISCONNECTED:
