@@ -49,3 +49,18 @@ class LabCRUD(BaseCRUD):
             )
         )
         return lab.scalar_one_or_none()
+
+    async def read_all_for_leaderboard(self) -> Sequence[Lab]:
+        """Read all labs for the leaderboard."""
+        labs = await self.session.execute(
+            select(Lab)
+            .order_by(col(Lab.valuation).desc())
+            .options(
+                selectinload(Lab.player),
+                selectinload(Lab.employees),
+                selectinload(Lab.models),
+                selectinload(Lab.investors),
+            )
+            .limit(100)
+        )
+        return labs.scalars().all()

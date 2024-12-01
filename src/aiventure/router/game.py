@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from aiventure.constants import CREATE_MODEL_COST
 from aiventure.db import AIModelCRUD, LabCRUD, PlayerCRUD
-from aiventure.dependencies import get_async_session_from_websocket
+from aiventure.dependencies import get_async_session, get_async_session_from_websocket
 from aiventure.game_manager import GameAction, GameMessage, GameMessageResponse, game_manager
 from aiventure.models import (
     AI_MODEL_TYPE_MAPPING,
@@ -30,6 +30,36 @@ from aiventure.models import (
 logger = logging.getLogger("uvicorn.error")
 
 router = APIRouter()
+
+
+@router.get("/leaderboard", response_model=list[LabDataResponse])
+async def leaderboard(session: AsyncSession = Depends(get_async_session)) -> list[LabDataResponse]:
+    """Return the leaderboard."""
+    async with LabCRUD(session) as crud:
+        labs = await crud.read_all_for_leaderboard()
+
+        return [
+            LabDataResponse(
+                id=lab.id,
+                name=lab.name,
+                location=lab.location,
+                valuation=lab.valuation,
+                income=lab.income,
+                tech_tree_id=lab.tech_tree_id,
+                player_id=lab.player_id,
+                employees=lab.employees,
+                models=lab.models,
+                investors=[
+                    Investor(
+                        player=investor.player,
+                        part=investor.part,
+                    )
+                    for investor in lab.investors
+                ],
+                player=lab.player,
+            )
+            for lab in labs
+        ]
 
 
 @router.websocket("/ws")

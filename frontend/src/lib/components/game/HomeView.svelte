@@ -12,7 +12,7 @@
 
     import { CREATE_MODEL_COST, LOCATIONS, MODEL_CATEGORIES } from "$lib/constants";
     import { labStore } from "$lib/stores/gameStore";
-
+    import { formatNumber } from "$lib/utils.js";
     import * as Avatar from "$lib/components/ui/avatar/index.js";
     import { Badge } from "$lib/components/ui/badge/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
@@ -49,7 +49,7 @@
                 </p>
                 <p class="flex items-center mt-2">
                     <CircleDollarSign class="w-5 h-5" />
-                    <span class="text-sm pl-1">Income: ${$labStore?.income} / 5min</span>
+                    <span class="text-sm pl-1">Income: ${formatNumber($labStore?.income ?? 0, 1e6)}/min</span>
                 </p>
             </Card.Content>
             <Card.Footer class="flex justify-center mt-4">
@@ -84,7 +84,7 @@
                             <Dialog.Header>
                                 <Dialog.Title>New AI Model</Dialog.Title>
                                 <Dialog.Description>
-                                    Choose a name and pick a category 👇
+                                    Choose a name and pick a category
                                 </Dialog.Description>
                             </Dialog.Header>
                             <form onsubmit={(e) => handleCreateModel(e, modelName, modelCategory)} class="flex flex-col items-center justify-center gap-8">
