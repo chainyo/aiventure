@@ -8,6 +8,13 @@ from pydantic import BaseModel, ConfigDict
 from sqlmodel import Column, Enum, Field, Relationship, SQLModel
 from sqlmodel._compat import SQLModelConfig
 
+from aiventure.constants import (
+    BASE_PLAYER_FUNDS,
+    EMPLOYEE_VALUATION_QUALITY_MULTIPLIERS,
+    LOCATION_INCOME_MULTIPLIER,
+    LOCATION_VALUATION_MULTIPLIER,
+)
+
 
 class AIModelTypeEnum(str, enum.Enum):
     """AI model type enum."""
@@ -234,7 +241,7 @@ class PlayerBase(UUIDModel):
 
     name: str
     avatar: str
-    funds: float = Field(default=100000.0)
+    funds: float = Field(default=BASE_PLAYER_FUNDS)
     user_id: str = Field(foreign_key="users.id", sa_column_kwargs={"unique": True})
 
     model_config = SQLModelConfig(
@@ -259,6 +266,13 @@ class Player(PlayerBase, table=True):
         back_populates="player",
         sa_relationship_kwargs={"lazy": "selectin"},
     )
+
+    def update_lab(self, lab: "Lab") -> None:
+        """Update the player's lab."""
+        for _lab in self.labs:
+            if _lab.id == lab.id:
+                _lab = lab
+                break
 
 
 class LabBase(UUIDModel):
@@ -298,6 +312,71 @@ class Lab(LabBase, table=True):
         sa_relationship_kwargs={"lazy": "selectin"},
     )
     player: Player = Relationship(back_populates="labs", sa_relationship_kwargs={"lazy": "selectin"})
+
+    def calculate_income(self) -> float:
+        """Calculate the lab's income based on various factors.
+
+        The formula takes into account:
+        1. The number of models
+        2. The model modifiers
+        3. The location of the lab
+        4. The salary of the employees
+        """
+        base_income = 0.0
+        # 1. The number of models
+        # Each model gives $0.002 on a base income
+        base_income += len(self.models) * 0.002
+        # 2. The model modifiers
+        # TODO: Implement the modifiers for models
+        # 3. The location of the lab
+        location_multiplier = LOCATION_INCOME_MULTIPLIER[self.location]
+        base_income *= location_multiplier
+        # 4. The salary of the employees
+        # TODO: Implement the salary of the employees
+
+        return round(base_income, 2)
+
+    def calculate_valuation(self) -> float:
+        """Calculate the lab's valuation based on various factors.
+
+        The formula takes into account:
+        1. Base income multiplier (yearly income = per_minute * 525600)
+        2. Employee multipliers (quality_id)
+        3. AI Model portfolio value
+        4. Location modifier
+        5. Investment history
+        """
+        # 1. Base income multiplier (60 minutes * 24 hours * 365 days)
+        base_valuation = self.income * 525600
+        # 2. Employee multipliers (quality_id)
+        employee_multiplier = 1.0
+        if self.employees:
+            total_quality = sum(
+                EMPLOYEE_VALUATION_QUALITY_MULTIPLIERS[employee.quality_id] for employee in self.employees
+            )
+            employee_multiplier = 1.0 + (total_quality / len(self.employees) - 1) * 0.5
+        # 3. AI Model portfolio value
+        model_multiplier = 1.0
+        if self.models:
+            # Each additional model adds 2% to the valuation
+            model_multiplier = 1.0 + len(self.models) * 0.02
+        # 4. Location modifier
+        location_multiplier = LOCATION_VALUATION_MULTIPLIER[self.location]
+        # 5. Investment history
+        investor_multiplier = 1.0
+        if self.investors:
+            # Each additional investor adds 5% to the valuation minus the first investor
+            # which is the player itself
+            investor_multiplier = 1.0 + (len(self.investors) - 1) * 0.05
+
+        final_valuation = (
+            base_valuation
+            * employee_multiplier
+            * model_multiplier
+            * location_multiplier
+            * investor_multiplier
+        )
+        return round(final_valuation, 2)
 
 
 class AIModelBase(UUIDModel):

@@ -11,7 +11,7 @@ import {
     type AIModel,
     type Lab,
     type Player,
-    type UpdateFunds
+    type UpdateFunds,
 } from "$lib/stores/gameStore";
 import { fundsAnimationStore } from "$lib/stores/animationStore";
 import { GameActions } from "$lib/types/websocket";

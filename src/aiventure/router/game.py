@@ -6,7 +6,7 @@ import uuid
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from aiventure.constants import CREATE_MODEL_COST
+from aiventure.constants import CREATE_LAB_COST, CREATE_MODEL_COST
 from aiventure.db import AIModelCRUD, LabCRUD, PlayerCRUD
 from aiventure.dependencies import get_async_session, get_async_session_from_websocket
 from aiventure.game_manager import GameAction, GameMessage, GameMessageResponse, game_manager
@@ -127,6 +127,20 @@ async def game_ws(
                                         error="Failed to create lab",
                                     ).model_dump()
                                 )
+                        # Decrement funds
+                        async with PlayerCRUD(session) as crud:
+                            _player = await crud.decrement_funds(player.id, CREATE_LAB_COST)
+                            if _player:
+                                player.funds = _player.funds
+                                await websocket.send_json(
+                                    GameMessageResponse(
+                                        action=GameAction.UPDATE_FUNDS,
+                                        payload=FundsUpdate(funds=player.funds, update_type="decrement").model_dump(),
+                                    ).model_dump()
+                                )
+                                # Fetch player data
+                                player = await crud.read_player_data_by_id(player.id)
+
                     case GameAction.CREATE_MODEL:
                         # Check if funds are sufficient
                         if player.funds < CREATE_MODEL_COST:
@@ -217,9 +231,41 @@ async def game_ws(
                                         payload=FundsUpdate(funds=player.funds, update_type="decrement").model_dump(),
                                     ).model_dump()
                                 )
+                                # Fetch player data
+                                player = await crud.read_player_data_by_id(player.id)
                             else:
                                 # TODO: Handle error
                                 continue
+                        # Update income and valuation of lab
+                        async with LabCRUD(session) as crud:
+                            await crud.update_income(_lab.id)
+                            await crud.update_valuation(_lab.id)
+                            # Fetch updated lab
+                            lab = await crud.read_by_id(_lab.id)
+                            await websocket.send_json(
+                                GameMessageResponse(
+                                    action=GameAction.RETRIEVE_LAB,
+                                    payload=LabDataResponse(
+                                        id=lab.id,
+                                        name=lab.name,
+                                        location=lab.location,
+                                        valuation=lab.valuation,
+                                        income=lab.income,
+                                        tech_tree_id=lab.tech_tree_id,
+                                        player_id=lab.player_id,
+                                        employees=lab.employees,
+                                        models=lab.models,
+                                        investors=[
+                                            Investor(
+                                                player=investor.player,
+                                                part=investor.part,
+                                            )
+                                            for investor in lab.investors
+                                        ],
+                                        player=lab.player,
+                                    ).model_dump(),
+                                ).model_dump()
+                            )
 
                     case GameAction.CREATE_PLAYER:
                         async with PlayerCRUD(session) as crud:
@@ -259,6 +305,7 @@ async def game_ws(
                                         error="Failed to create player",
                                     ).model_dump()
                                 )
+
                     case GameAction.RETRIEVE_LAB:
                         async with LabCRUD(session) as crud:
                             lab = await crud.read_by_id(message.payload["id"])
@@ -296,6 +343,7 @@ async def game_ws(
                                         error="Lab not found",
                                     ).model_dump()
                                 )
+
                     case GameAction.RETRIEVE_PLAYER_DATA:
                         async with PlayerCRUD(session) as crud:
                             if not player:
@@ -331,8 +379,10 @@ async def game_ws(
                                     error="Player not found",
                                 ).model_dump()
                             )
+
                     case "test":
                         await websocket.send_json({"response": "test"})
+
                     case _:
                         logger.info(data)
             except Exception as e:

@@ -14,11 +14,16 @@ class LabCRUD(BaseCRUD):
 
     async def create(self, lab: LabBase, player: Player) -> Lab:
         """Create a new lab."""
-        lab = PlayerLabInvestmentLink(player=player, lab=Lab(**lab.model_dump()), part=1.0)
+        lab_link = PlayerLabInvestmentLink(player=player, lab=Lab(**lab.model_dump()), part=1.0)
 
-        self.session.add(lab)
+        self.session.add(lab_link)
         await self.session.commit()
-        await self.session.refresh(lab)
+        await self.session.refresh(lab_link)
+
+        # We retrieve the full lab from the database to expose created data to the client
+        lab = await self.read_by_id(lab_link.lab_id)
+        if not lab:
+            raise ValueError("Lab not found")
 
         return lab
 
@@ -64,3 +69,23 @@ class LabCRUD(BaseCRUD):
             .limit(100)
         )
         return labs.scalars().all()
+
+    async def update_valuation(self, lab_id: str) -> Lab | None:
+        """Update the valuation of a lab."""
+        lab = await self.read_by_id(lab_id)
+        if lab:
+            lab.valuation = lab.calculate_valuation()
+            await self.session.commit()
+            await self.session.refresh(lab)
+
+        return lab
+
+    async def update_income(self, lab_id: str) -> Lab | None:
+        """Update the income of a lab."""
+        lab = await self.read_by_id(lab_id)
+        if lab:
+            lab.income = lab.calculate_income()
+            await self.session.commit()
+            await self.session.refresh(lab)
+
+        return lab
