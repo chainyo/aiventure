@@ -83,13 +83,8 @@ class LabCRUD(BaseCRUD):
     async def update_income(self, lab_id: str) -> Lab | None:
         """Update the income of a lab."""
         lab = await self.read_by_id(lab_id)
-        print(type(lab))
-        print(lab)
         if lab:
-            income = lab.calculate_income()
-            print(income)
-            lab.income = income
-            print(lab)
+            lab.income = lab.calculate_income()
             await self.session.commit()
             await self.session.refresh(lab)
 

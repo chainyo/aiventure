@@ -45,7 +45,7 @@
             <Card.Content>
                 <p class="flex items-center">
                     <Landmark class="w-5 h-5" />
-                    <span class="text-sm pl-1">Valuation: ${$labStore?.valuation}</span>
+                    <span class="text-sm pl-1">Valuation: ${formatNumber($labStore?.valuation ?? 0, 1e6)}</span>
                 </p>
                 <p class="flex items-center mt-2">
                     <CircleDollarSign class="w-5 h-5" />

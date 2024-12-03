@@ -324,8 +324,8 @@ class Lab(LabBase, table=True):
         """
         base_income = 0.0
         # 1. The number of models
-        # Each model gives $0.002 on a base income
-        base_income += len(self.models) * 0.002
+        # Each model gives $0.05 on a base income
+        base_income += len(self.models) * 0.05
         # 2. The model modifiers
         # TODO: Implement the modifiers for models
         # 3. The location of the lab
