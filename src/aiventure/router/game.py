@@ -238,8 +238,8 @@ async def game_ws(
                                 continue
                         # Update income and valuation of lab
                         async with LabCRUD(session) as crud:
-                            await crud.update_income(_lab.id)
-                            await crud.update_valuation(_lab.id)
+                            _lab = await crud.update_income(_lab.id)
+                            _lab = await crud.update_valuation(_lab.id)
                             # Fetch updated lab
                             lab = await crud.read_by_id(_lab.id)
                             await websocket.send_json(

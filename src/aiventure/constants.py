@@ -1,6 +1,7 @@
 """Constants for the game."""
 
-BASE_PLAYER_FUNDS = 110_100.0
+# BASE_PLAYER_FUNDS = 110_100.0
+BASE_PLAYER_FUNDS = 100_000_000
 """Base funds for a player."""
 CREATE_LAB_COST = 100_000
 """Cost to create a lab."""

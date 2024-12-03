@@ -334,7 +334,7 @@ class Lab(LabBase, table=True):
         # 4. The salary of the employees
         # TODO: Implement the salary of the employees
 
-        return round(base_income, 2)
+        return base_income
 
     def calculate_valuation(self) -> float:
         """Calculate the lab's valuation based on various factors.
@@ -376,7 +376,7 @@ class Lab(LabBase, table=True):
             * location_multiplier
             * investor_multiplier
         )
-        return round(final_valuation, 2)
+        return final_valuation
 
 
 class AIModelBase(UUIDModel):

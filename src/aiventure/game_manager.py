@@ -156,7 +156,6 @@ class GameManager:
                     income = await player_lab_investment_link_crud.get_income_for_player(connection.player_id)
 
                 if income is not None:
-                    income = income + 2
                     async with PlayerCRUD(self._async_session) as player_crud:
                         player = await player_crud.increment_funds(connection.player_id, income)
 
