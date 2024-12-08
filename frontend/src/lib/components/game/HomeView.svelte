@@ -31,9 +31,9 @@
 </script>
 
 {#if activeLab}
-    <div class="grid grid-cols-4 gap-4">
+    <div class="grid grid-cols-5 gap-4">
         <!-- General lab information -->
-        <Card.Root class="w-full p-4 col-span-1">
+        <Card.Root class="w-full p-4 col-span-2">
             <Card.Header class="flex flex-col gap-2">
                 <Card.Title>{activeLab}</Card.Title>
                 <Card.Description>
@@ -129,7 +129,7 @@
         </Card.Root>
 
         <!-- Employees -->
-        <Card.Root class="w-full p-4 col-span-3">
+        <Card.Root class="w-full p-4 col-span-4">
             <Card.Header>
                 <Card.Title class="flex gap-2 items-center">
                     <Briefcase class="w-5 h-5" />
